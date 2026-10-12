@@ -120,7 +120,7 @@ def s_hammer(lt, D):
         for k in range(8): a = k * math.pi / 4; d.line(((cx + 14 * math.cos(a), cy + 14 * math.sin(a)), (cx + 44 * math.cos(a), cy + 44 * math.sin(a))), fill=(255, 230, 120), width=6)
     counter(im, n, "гвоздей за день"); dust(im, lt); return im.convert("RGB")
 def s_days(lt, D):
-    cyc = lt / D * 3; tod = cyc % 1; night = max(0, math.sin(math.pi * (tod - 0.55) / 0.45)) if tod > 0.55 else 0.0
+    cyc = min(lt / D, 0.999) * 3; tod = cyc % 1; night = max(0, math.sin(math.pi * (tod - 0.55) / 0.45)) if tod > 0.55 else 0.0
     sun = (lerp(-80, 1160, min(tod / 0.6, 1)), 620 + OF - 260 * math.sin(math.pi * min(tod / 0.6, 1)))
     im = world(lt, sun=sun, tint=1 - 0.8 * night, nails=37)
     if night > 0.2:
