@@ -1,5 +1,5 @@
 """Reels: «Макиавелли. Государь — 5 мыслей». Перевод отрывков — собственный, с итальянского оригинала (1513, общественное достояние).
-Озвучка — Silero TTS (офлайн), сцены — Pillow, сборка — ffmpeg."""
+Озвучка — Silero TTS v5 (офлайн), сцены — Pillow, сборка — ffmpeg."""
 import math, os, random, subprocess, sys
 import numpy as np, scipy.io.wavfile as wavfile, torch
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from make_scenes_demo import glow, vgrad, ease, lerp, figure, walk_pose, bird, W, H, FPS, CX0, CY0, CW, CH, GY, SKIN
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else "machiavelli.mp4"
-SILERO = os.environ.get("SILERO_MODEL", "v4_ru.pt")
+SILERO = os.environ.get("SILERO_MODEL", "v5_ru.pt")
 WORK = "machiavelli"; os.makedirs(WORK, exist_ok=True)
 F = "/usr/share/fonts/opentype/inter/Inter-{}.otf"
 def font(w, s): return ImageFont.truetype(F.format(w), s)
@@ -275,8 +275,9 @@ p = subprocess.Popen(["ffmpeg", "-nostdin", "-loglevel", "error", "-y", "-f", "r
                       "-c:v", "libx264", "-crf", "19", "-pix_fmt", "yuv420p", f"{WORK}/video.mp4"], stdin=subprocess.PIPE)
 for n in range(int(DUR * FPS)): p.stdin.write(frame(n / FPS).tobytes())
 p.stdin.close(); p.wait()
-fc = ("[1:a]highpass=f=70,acompressor=threshold=-20dB:ratio=3:attack=5:release=100:makeup=2,asplit[v][vk];"
-      "[2:a]volume=0.32[m];[m][vk]sidechaincompress=threshold=0.02:ratio=10:attack=15:release=500[md];"
+# голос почти без обработки (модель v5 и так чистая): срез гула, лёгкая «присутственность», мягкий де-эссер
+fc = ("[1:a]highpass=f=80,equalizer=f=3500:t=q:w=1.5:g=1.5,deesser=i=0.2,asplit[v][vk];"
+      "[2:a]volume=0.12[m];[m][vk]sidechaincompress=threshold=0.03:ratio=4:attack=30:release=600[md];"
       "[v][md]amix=inputs=2:normalize=0,loudnorm=I=-14:TP=-1.5[a]")
 subprocess.run(["ffmpeg", "-nostdin", "-loglevel", "error", "-y", "-i", f"{WORK}/video.mp4", "-i", f"{WORK}/voice.wav", "-i", f"{WORK}/music.wav",
                 "-filter_complex", fc, "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-t", f"{DUR:.2f}", "-movflags", "+faststart", OUT], check=True)
