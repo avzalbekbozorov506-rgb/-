@@ -34,7 +34,7 @@ POSES = {  # углы в градусах: torso от вертикали вве�
     "jalsa": dict(torso=0, th1=82, kn1=170, th2=82, kn2=170, ua1=28, el1=55, ua2=24, el2=55),
 }
 
-def figure(d, x, ground, p, s=1.0, f=1, robe=(84, 96, 160), robe2=(60, 70, 128), umbrella=None):
+def figure(d, x, ground, p, s=1.0, f=1, robe=(84, 96, 160), robe2=(60, 70, 128), umbrella=None, hat=CAP, beard=BEARD):
     T, NK, R, L1, L2, A1, A2 = 150 * s, 30 * s, 52 * s, 120 * s, 115 * s, 92 * s, 86 * s
     rad = math.radians
     def leg(th, kn):
@@ -60,9 +60,9 @@ def figure(d, x, ground, p, s=1.0, f=1, robe=(84, 96, 160), robe2=(60, 70, 128),
     d.ellipse((hx - R, hy - R, hx + R, hy + R), fill=SKIN)                          # голова
     ox, oy = math.sin(ta) * f, -math.cos(ta)                                        # «верх» головы
     cx, cy = hx + ox * R * 0.55, hy + oy * R * 0.55
-    d.ellipse((cx - R * 0.95, cy - R * 0.62, cx + R * 0.95, cy + R * 0.62), fill=CAP)  # такья
+    if hat: d.ellipse((cx - R * 0.95, cy - R * 0.62, cx + R * 0.95, cy + R * 0.62), fill=hat)  # головной убор
     bx, by = hx - ox * R * 0.45 + f * R * 0.25, hy - oy * R * 0.45
-    d.ellipse((bx - R * 0.7, by - R * 0.5, bx + R * 0.7, by + R * 0.5), fill=BEARD)    # борода
+    if beard: d.ellipse((bx - R * 0.7, by - R * 0.5, bx + R * 0.7, by + R * 0.5), fill=beard)    # борода
     cap(sh, e1, 32 * s, robe); cap(e1, h1, 28 * s, robe)                            # ближняя рука
     hp = P(h1); d.ellipse((hp[0] - 15 * s, hp[1] - 15 * s, hp[0] + 15 * s, hp[1] + 15 * s), fill=SKIN)
     if umbrella:
