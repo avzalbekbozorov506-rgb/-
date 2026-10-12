@@ -22,7 +22,8 @@ LEAD, TAIL, XF = 0.6, 1.0, 0.7
 model = torch.package.PackageImporter(SILERO).load_pickle("tts_models", "model"); model.to("cpu")
 SR = 48000; voice, STARTS, DURS, t0 = [], [], [], 0.0
 for sc in SCENES:
-    a = model.apply_tts(text=sc[0], speaker=getattr(cfg, "SPEAKER", "aidar"), sample_rate=SR, put_accent=True, put_yo=True).numpy()
+    spk = sc[6] if len(sc) > 6 and sc[6] else getattr(cfg, "SPEAKER", "aidar")   # голос можно задать для каждой сцены
+    a = model.apply_tts(text=sc[0], speaker=spk, sample_rate=SR, put_accent=True, put_yo=True).numpy()
     STARTS.append(t0); DURS.append(LEAD + len(a) / SR + TAIL); voice.append((t0 + LEAD, a)); t0 += DURS[-1]
 DUR = t0
 track = np.zeros(int(DUR * SR) + SR)
@@ -78,8 +79,9 @@ def camera(im, z, fx, fy):
     return im.resize((W, H), Image.BILINEAR, box=(cx - cw / 2, cy - ch / 2, cx + cw / 2, cy + ch / 2))
 
 yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
-bot = np.clip((yy - 880) / 620, 0, 1) ** 1.3 * 238; top = np.clip((380 - yy) / 380, 0, 1) * 150
-vig = np.clip(((xx - W / 2) ** 2 / (W * 0.75) ** 2 + (yy - H * 0.45) ** 2 / (H * 0.7) ** 2) - 0.35, 0, 1) * 170
+TDY = getattr(cfg, "TEXT_DY", 0)
+bot = np.clip((yy - 880 - TDY) / 620, 0, 1) ** 1.3 * getattr(cfg, "BOT_ALPHA", 238); top = np.clip((380 - yy) / 380, 0, 1) * getattr(cfg, "TOP_ALPHA", 150)
+vig = np.clip(((xx - W / 2) ** 2 / (W * 0.75) ** 2 + (yy - H * 0.45) ** 2 / (H * 0.7) ** 2) - 0.35, 0, 1) * getattr(cfg, "VIG", 170)
 OVER = Image.fromarray(np.dstack([np.full((H, W), 8), np.full((H, W), 6), np.full((H, W), 6), np.clip(np.maximum(np.maximum(bot, top), vig), 0, 245)]).astype(np.uint8), "RGBA")
 rng = np.random.default_rng(1); GRAIN = [rng.normal(0, getattr(cfg, "GRAIN", 3.5), (H // 2, W // 2)).astype(np.int16) for _ in range(6)]
 
@@ -94,27 +96,27 @@ F_TAG, F_CR = sans("SemiBold", 24), sans("Medium", 22)
 
 def text_layer(i, lt, D):
     lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
-    _, text, tag, _, credit, _ = SCENES[i]; out = ease((D - lt - 0.15) / 0.5)
+    text, tag, credit = SCENES[i][1], SCENES[i][2], SCENES[i][4]; out = ease((D - lt - 0.15) / 0.5)
     if text is None:
         word, line2, line3 = cfg.TITLE; a = ease((lt - 0.4) / 1.0) * out
         size = 150
         while size > 80 and d.textlength(word, font=serif("Bold", size)) + 14 * len(word) > 980: size -= 6
-        spaced(d, (W // 2, 1240), word, serif("Bold", size), WHITE + (int(255 * a),), 14)
-        d.line(((W // 2 - 120, 1345), (W // 2 + 120, 1345)), fill=GOLD + (int(200 * a),), width=2)
-        b = ease((lt - 1.4) / 1.0) * out; d.text((W // 2, 1410), line2, font=serif("MediumItalic", 58), fill=WHITE + (int(235 * b),), anchor="mm")
-        c = ease((lt - 3.0) / 1.0) * out; spaced(d, (W // 2, 1500), line3, sans("Medium", 24), GOLD + (int(230 * c),), 4)
+        spaced(d, (W // 2, 1240 + TDY), word, serif("Bold", size), WHITE + (int(255 * a),), 14)
+        d.line(((W // 2 - 120, 1345 + TDY), (W // 2 + 120, 1345 + TDY)), fill=GOLD + (int(200 * a),), width=2)
+        b = ease((lt - 1.4) / 1.0) * out; d.text((W // 2, 1410 + TDY), line2, font=serif("MediumItalic", 58), fill=WHITE + (int(235 * b),), anchor="mm")
+        c = ease((lt - 3.0) / 1.0) * out; spaced(d, (W // 2, 1500 + TDY), line3, sans("Medium", 24), GOLD + (int(230 * c),), 4)
     else:
-        a = ease((lt - 0.2) / 0.6) * out; spaced(d, (W // 2, 1135), tag, F_TAG, GOLD + (int(240 * a),), 6)
-        lines = text.split("\n"); speak = D - LEAD - TAIL; size = 80
+        a = ease((lt - 0.2) / 0.6) * out; spaced(d, (W // 2, 1135 + TDY), tag, F_TAG, GOLD + (int(240 * a),), 6)
+        lines = text.split("\n"); speak = D - LEAD - TAIL; size = getattr(cfg, "QUOTE_SIZE", 80)
         while size > 56 and max(d.textlength(l, font=serif("MediumItalic", size)) for l in lines) > 960: size -= 2
         fq = serif("MediumItalic", size)
         for k, line in enumerate(lines):
             st = LEAD + speak * (0.12 + 0.62 * k / len(lines)); b = ease((lt - st) / 0.7) * out
             if b <= 0: continue
-            y = 1215 + k * int(size * 1.15) + int((1 - b) * 18)
+            y = 1215 + TDY + k * int(size * 1.15) + int((1 - b) * 18)
             d.text((W // 2 + 2, y + 3), line, font=fq, fill=(0, 0, 0, int(120 * b)), anchor="mm")
             d.text((W // 2, y), line, font=fq, fill=WHITE + (int(255 * b),), anchor="mm")
-    cr = ease((lt - 1.0) / 0.8) * out; d.text((W // 2, 1640), credit, font=F_CR, fill=GREY + (int(200 * cr),), anchor="mm")
+    cr = ease((lt - 1.0) / 0.8) * out; d.text((W // 2, 1640 + min(TDY, 150)), credit, font=F_CR, fill=GREY + (int(200 * cr),), anchor="mm")
     return lay
 
 def scene_frame(i, lt):
