@@ -144,7 +144,7 @@ if __name__ == "__main__":
         for k, x in enumerate(map(float, sys.argv[3].split(","))): Image.fromarray(frame(x, k)).resize((360, 640)).save(f"{WORK}/pv_{k}.png")
         sys.exit()
     p = subprocess.Popen(["ffmpeg", "-nostdin", "-loglevel", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
-                          "-c:v", "libx264", "-preset", "slow", "-tune", "film", "-crf", "17", "-maxrate", "14M", "-bufsize", "28M", "-profile:v", "high", "-pix_fmt", "yuv420p", f"{WORK}/video.mp4"], stdin=subprocess.PIPE)
+                          "-c:v", "libx264", "-preset", "slow", "-tune", "film", "-crf", "19", "-maxrate", "6M", "-bufsize", "12M", "-profile:v", "high", "-pix_fmt", "yuv420p", f"{WORK}/video.mp4"], stdin=subprocess.PIPE)
     for n in range(int(DUR * FPS)): p.stdin.write(frame(n / FPS, n).tobytes())
     p.stdin.close(); p.wait()
     fc = ("[1:a]highpass=f=80,equalizer=f=3500:t=q:w=1.5:g=1.5,deesser=i=0.2,asplit[v][vk];"
