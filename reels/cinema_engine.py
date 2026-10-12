@@ -81,7 +81,7 @@ yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
 bot = np.clip((yy - 880) / 620, 0, 1) ** 1.3 * 238; top = np.clip((380 - yy) / 380, 0, 1) * 150
 vig = np.clip(((xx - W / 2) ** 2 / (W * 0.75) ** 2 + (yy - H * 0.45) ** 2 / (H * 0.7) ** 2) - 0.35, 0, 1) * 170
 OVER = Image.fromarray(np.dstack([np.full((H, W), 8), np.full((H, W), 6), np.full((H, W), 6), np.clip(np.maximum(np.maximum(bot, top), vig), 0, 245)]).astype(np.uint8), "RGBA")
-rng = np.random.default_rng(1); GRAIN = [rng.normal(0, 6, (H // 2, W // 2)).astype(np.int16) for _ in range(6)]
+rng = np.random.default_rng(1); GRAIN = [rng.normal(0, getattr(cfg, "GRAIN", 3.5), (H // 2, W // 2)).astype(np.int16) for _ in range(6)]
 
 def spaced(d, xy, text, f, fill, sp=6):
     w = sum(d.textlength(c, font=f) + sp for c in text) - sp; x = xy[0] - w / 2
@@ -119,7 +119,10 @@ def text_layer(i, lt, D):
 
 def scene_frame(i, lt):
     D = DURS[i]; src = SCENES[i][3]
-    if callable(src): im = src(lt, D).convert("RGBA")                    # анимированная сцена
+    if callable(src):                                                    # анимированная сцена: сглаживание краёв + медленный наезд камеры
+        im = src(lt, D).filter(ImageFilter.GaussianBlur(getattr(cfg, "AA", 0.8)))
+        z = 1.0 + 0.05 * (lt / D); cw, ch = W / z, H / z
+        im = im.resize((W, H), Image.BICUBIC, box=((W - cw) / 2, (H - ch) * 0.4, (W + cw) / 2, (H - ch) * 0.4 + ch)).convert("RGBA")
     else:
         z0, z1, (fx0, fy0), (fx1, fy1) = SCENES[i][5]; u = ease(lt / D) * 0.85 + (lt / D) * 0.15
         im = camera(plate(src), z0 + (z1 - z0) * u, fx0 + (fx1 - fx0) * u, fy0 + (fy1 - fy0) * u).convert("RGBA")
@@ -141,7 +144,7 @@ if __name__ == "__main__":
         for k, x in enumerate(map(float, sys.argv[3].split(","))): Image.fromarray(frame(x, k)).resize((360, 640)).save(f"{WORK}/pv_{k}.png")
         sys.exit()
     p = subprocess.Popen(["ffmpeg", "-nostdin", "-loglevel", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
-                          "-c:v", "libx264", "-preset", "slow", "-crf", "25", "-maxrate", "3.6M", "-bufsize", "7M", "-pix_fmt", "yuv420p", f"{WORK}/video.mp4"], stdin=subprocess.PIPE)
+                          "-c:v", "libx264", "-preset", "slow", "-tune", "film", "-crf", "17", "-maxrate", "14M", "-bufsize", "28M", "-profile:v", "high", "-pix_fmt", "yuv420p", f"{WORK}/video.mp4"], stdin=subprocess.PIPE)
     for n in range(int(DUR * FPS)): p.stdin.write(frame(n / FPS, n).tobytes())
     p.stdin.close(); p.wait()
     fc = ("[1:a]highpass=f=80,equalizer=f=3500:t=q:w=1.5:g=1.5,deesser=i=0.2,asplit[v][vk];"
@@ -149,4 +152,8 @@ if __name__ == "__main__":
           "[v][md]amix=inputs=2:normalize=0,loudnorm=I=-14:TP=-1.5[a]")
     subprocess.run(["ffmpeg", "-nostdin", "-loglevel", "error", "-y", "-i", f"{WORK}/video.mp4", "-i", f"{WORK}/voice.wav", "-i", f"{WORK}/music.wav",
                     "-filter_complex", fc, "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-t", f"{DUR:.2f}", "-movflags", "+faststart", OUT], check=True)
-    print("done", OUT, f"{DUR:.1f} c")
+    # облегчённая копия до ~27 МБ — чтобы отправить в чат; оригинал высокого качества остаётся для загрузки в Instagram
+    kbps = int(27 * 8 * 1024 / DUR - 200); light = OUT.replace(".mp4", "_light.mp4")
+    subprocess.run(["ffmpeg", "-nostdin", "-loglevel", "error", "-y", "-i", OUT, "-c:v", "libx264", "-preset", "slow", "-b:v", f"{kbps}k", "-maxrate", f"{kbps}k", "-bufsize", f"{2 * kbps}k",
+                    "-pix_fmt", "yuv420p", "-c:a", "copy", "-movflags", "+faststart", light], check=True)
+    print("done", OUT, f"{DUR:.1f} c", "+", light)
