@@ -313,6 +313,19 @@ def hook_layer(lt):
         lay = big.crop((int(cx * s - cx), int(cy * s - cy), int(cx * s - cx) + W, int(cy * s - cy) + H))
     return lay
 
+def stamp_layer(text, lt, y):
+    """Штамп-вердикт («МИФ», «ПРАВДА»): падает с «ударом», чуть повёрнут, держится до конца сцены."""
+    a = ease(lt / 0.12); lay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    if a <= 0: return lay
+    d = ImageDraw.Draw(lay); f = sans("Black", 150); col = (200, 30, 36) if text != "ПРАВДА" else (40, 150, 70)
+    x0, y0, x1, y1 = d.textbbox((W // 2, y), text, font=f, anchor="mm")
+    for k in (0, 10): d.rounded_rectangle((x0 - 50 + k, y0 - 40 + k, x1 + 50 - k, y1 + 40 - k), 26, outline=col + (int(235 * a),), width=10 if k == 0 else 4)
+    d.text((W // 2, y), text, font=f, fill=col + (int(240 * a),), anchor="mm")
+    s = 1.0 + 0.6 * (1 - ease(lt / 0.15)); lay = lay.rotate(-8, center=(W // 2, y), resample=Image.BICUBIC)
+    if s != 1.0:
+        big = lay.resize((int(W * s), int(H * s)), Image.BICUBIC); lay = big.crop((int(W / 2 * s - W / 2), int(y * s - y), int(W / 2 * s - W / 2) + W, int(y * s - y) + H))
+    return lay
+
 def scene_frame(i, lt):
     D = DURS[i]; src = SCENES[i][3]
     if callable(src):                                                    # анимированная сцена: сглаживание краёв + медленный наезд камеры
@@ -327,6 +340,8 @@ def scene_frame(i, lt):
         im = camera(pl, z0 + (z1 - z0) * u, fx0 + (fx1 - fx0) * u, fy0 + (fy1 - fy0) * u).convert("RGBA")
     im.alpha_composite(OVER); im.alpha_composite(HEAD, (0, 0)); im.alpha_composite(text_layer(i, lt, D))
     if i == 0 and hasattr(cfg, "HOOK"): im.alpha_composite(hook_layer(lt))
+    st = getattr(cfg, "STAMPS", {}).get(i)                                # штамп-вердикт: {сцена: ("МИФ", секунда)}
+    if st and lt >= st[1]: im.alpha_composite(stamp_layer(st[0], lt - st[1], getattr(cfg, "STAMP_Y", 760)))
     return im.convert("RGB")
 
 def frame(t, n):
