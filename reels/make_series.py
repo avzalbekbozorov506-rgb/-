@@ -7,13 +7,15 @@ from series_art import ART
 VOICE = sys.argv[1] if len(sys.argv) > 1 else "vosk"
 V = {"vosk": 'VOSK = dict(speaker=4, rate=1.0, dot=340)   # «студийный» голос Vosk TTS (диктор 4)',
      "xtts": 'XTTS = dict(speaker="Damien Black", tries=6)   # живой голос XTTS-v2, каждое предложение проверено Whisper (xtts_prepare.py)'}[VOICE]
+CAM = {(3, "s5"): (1.25, 1.4, (0.5, 0.8), (0.5, 0.74))}   # ручная камера для картин, где главное не в центре
 def fn(f): return f"met_{f}" if isinstance(f, int) else f
 for s in SERIES:
     n, art = s["n"], ART[s["n"]]; lines = []
     for k, (say, label, key) in enumerate(s["scenes"]):
         f, cap = art[key]; name = fn(f); w, h = Image.open(f"art/{name}.jpg").size
         last = k == len(s["scenes"]) - 1
-        if w / h > 1.0: cam = (1.0, 1.15, (0.5, 0.36), (0.5, 0.36))
+        if (n, key) in CAM: cam = CAM[(n, key)]
+        elif w / h > 1.0: cam = (1.0, 1.15, (0.5, 0.36), (0.5, 0.36))
         elif key == "hook" and last: cam = (1.3, 1.42, (0.45, 0.3), (0.45, 0.28))
         elif key == "hook": cam = (1.08, 1.22, (0.45, 0.34), (0.45, 0.29))
         else: cam = (1.05, 1.2, (0.5, 0.42), (0.5, 0.36))

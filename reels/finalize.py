@@ -9,12 +9,12 @@ def loud(f):
 src = f"{W}/_src.mp4"
 if not os.path.exists(src): os.replace(f"{N}.mp4", src)                 # исходник рендера сохраняем, чтобы можно было перезапустить
 best = None
-for lim, gain in ((0.5, 5.0), (0.4, 6.6), (0.35, 7.6), (0.3, 9.2), (0.25, 10.8)):
+for lim, gain in ((0.5, 5.0), (0.4, 6.6), (0.35, 7.6), (0.3, 9.2), (0.25, 10.8), (0.2, 12.8), (0.16, 14.8)):
     out = f"{W}/_ln.mp4"
     run("-y", "-i", src, "-af", f"aresample=192000,alimiter=limit={lim}:attack=3:release=80:level=false:asc=1,volume={gain}dB,aresample=48000",
         "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", out)
     i, p = loud(out); best = (lim, gain, i, p)
-    if i >= -15.0: break
+    if i >= -14.6: break
 lim, gain, i, p = best; adj = min(-14.0 - i, -1.0 - p)                 # к −14 LUFS, но пик не выше −1 dB
 run("-y", "-i", src, "-af", f"aresample=192000,alimiter=limit={lim}:attack=3:release=80:level=false:asc=1,volume={gain + adj:.2f}dB,aresample=48000",
     "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", f"{N}.mp4")
