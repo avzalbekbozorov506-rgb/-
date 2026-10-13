@@ -8,7 +8,7 @@ sys.argv = ["x", CFG, "/tmp/_check_voice.mp4"]
 exec(compile(open("cinema_engine.py").read().split("for i, sc in enumerate(SCENES)")[0], "cinema_engine", "exec"))
 from transformers import pipeline
 asr = pipeline("automatic-speech-recognition", model="openai/whisper-small")
-phrases = [l for l in sys.stdin.read().split("\n") if l.strip()] if MODE == "-" else [p.strip() for sc in SCENES for p in sc[0].split("|") if p.strip()]
+phrases = [l for l in sys.stdin.read().split("\n") if l.strip()] if MODE == "-" else ([" ".join(g) for sc in SCENES for g in sentences(sc[0])] if getattr(cfg, "SENTENCES", False) else [p.strip() for sc in SCENES for p in sc[0].split("|") if p.strip()])
 for ph in phrases:
     spk = getattr(cfg, "SPEAKER", "aidar")
     if ph.startswith("@"): spk, ph = ph[1:].split(":", 1); ph = ph.strip()

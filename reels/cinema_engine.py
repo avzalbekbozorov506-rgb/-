@@ -26,8 +26,22 @@ model = torch.package.PackageImporter(SILERO).load_pickle("tts_models", "model")
 SR = 48000; voice, STARTS, DURS, t0 = [], [], [], 0.0
 PHRASES = {}   # сцена -> [(начало, конец, текст)] — для субтитров, точно совпадающих с голосом
 def clean(t): return t.replace("+", "")
+def sentences(text):
+    """Фрагменты субтитров (через |), сгруппированные в предложения: фрагмент на . ! ? … закрывает предложение."""
+    out, cur = [], []
+    for f in [p.strip() for p in text.split("|") if p.strip()]:
+        cur.append(f)
+        if f.rstrip("»\"”").endswith((".", "!", "?", "…")): out.append(cur); cur = []
+    if cur: out.append(cur)
+    return out
 _VOSK = None
 def tts(text, spk):
+    xt = getattr(cfg, "XTTS", None)
+    if xt:                                                               # XTTS: голос заранее синтезирован и проверен Whisper (xtts_prepare.py)
+        import hashlib
+        key = hashlib.md5(("xtts|" + xt["speaker"] + "|" + text).encode()).hexdigest(); f = f"{HERE}/work/tts/{key}.wav"
+        if not os.path.exists(f): sys.exit(f"нет озвучки XTTS для: {text}\nзапусти: python3 xtts_prepare.py {sys.argv[1]}")
+        return wavfile.read(f)[1].astype(np.float32) / 32768
     vk = getattr(cfg, "VOSK", None)
     if vk:                                                               # Vosk TTS: ударения по словарю, чистое произношение; паузы — между предложениями
         global _VOSK
@@ -70,7 +84,17 @@ for i, sc in enumerate(SCENES):
     spk0 = sc[6] if len(sc) > 6 and sc[6] else getattr(cfg, "SPEAKER", "aidar")   # голос можно задать для каждой сцены
     if sc[1] == "SUB":                                                   # режим субтитров: каждая фраза озвучивается отдельно
         cur, parts = LEAD, []
-        for ph in [p.strip() for p in sc[0].split("|") if p.strip()]:
+        if getattr(cfg, "SENTENCES", False):                             # предложение озвучивается целиком (живая интонация), субтитры делятся по слогам
+            for grp in sentences(sc[0]):
+                a = tts(" ".join(grp), spk0); voice.append((t0 + cur, a))
+                nz = np.nonzero(np.abs(a) > 0.02 * np.abs(a).max())[0]; s0, s1 = (nz[0], nz[-1]) if len(nz) else (0, len(a))
+                syl = [max(1, sum(ch in "аеёиоуыэюяАЕЁИОУЫЭЮЯ" for ch in g)) for g in grp]; tot = sum(syl); acc = 0
+                for g, n in zip(grp, syl):
+                    b0 = (s0 + (s1 - s0) * acc / tot) / SR; acc += n; b1 = (s0 + (s1 - s0) * acc / tot) / SR
+                    parts.append((cur + b0, cur + b1, clean(g)))
+                cur += len(a) / SR + getattr(cfg, "GAP", 0.22)
+        else:
+          for ph in [p.strip() for p in sc[0].split("|") if p.strip()]:
             spk = spk0
             if ph.startswith("@"): spk, ph = ph[1:].split(":", 1); ph = ph.strip()
             a = tts(ph, spk); voice.append((t0 + cur, a)); parts.append((cur, cur + len(a) / SR, clean(ph))); cur += len(a) / SR + getattr(cfg, "GAP", 0.22)
