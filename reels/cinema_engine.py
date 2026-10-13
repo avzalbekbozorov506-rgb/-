@@ -36,6 +36,7 @@ def sentences(text):
     return out
 _VOSK = None
 def tts(text, spk):
+    for k_, v_ in getattr(cfg, "SAY", {}).items(): text = text.replace(k_, v_)      # как произносить (субтитры остаются как написано)
     xt = getattr(cfg, "XTTS", None)
     if xt:                                                               # XTTS: голос заранее синтезирован и проверен Whisper (xtts_prepare.py)
         import hashlib
@@ -49,7 +50,7 @@ def tts(text, spk):
         if _VOSK is None:
             from vosk_tts import Model as VM, Synth as VS
             _VOSK = VS(VM(model_name=vk.get("model", "vosk-model-tts-ru-0.9-multi")))
-        parts = [p for p in re.split(r"(?<=[.:!?])\s+", re.sub(r"[«»“”\"]", "", text.replace("+", ""))) if p.strip()]; out = []
+        parts = [p for p in re.split(r"(?<=[.:!?])\s+", re.sub(r"[«»“”\"]", "", text if vk.get("stress") else text.replace("+", ""))) if p.strip()]; out = []
         for k, p in enumerate(parts):
             a = np.asarray(_VOSK.synth_audio(p, speaker_id=vk.get("speaker", 4), speech_rate=vk.get("rate", 1.0)), np.float32) / 32768.0
             out.append(ss_.resample_poly(a, SR, 22050).astype(np.float32))
@@ -347,7 +348,8 @@ if __name__ == "__main__":
                           "-c:v", "libx264", "-preset", "slow", "-tune", "film", "-crf", "19", "-maxrate", "6M", "-bufsize", "12M", "-profile:v", "high", "-pix_fmt", "yuv420p", f"{WORK}/video.mp4"], stdin=subprocess.PIPE)
     for n in range(int(DUR * FPS)): p.stdin.write(frame(n / FPS, n).tobytes())
     p.stdin.close(); p.wait()
-    fc = ("[1:a]highpass=f=80,equalizer=f=3500:t=q:w=1.5:g=1.5,deesser=i=0.2,asplit[v][vk];"
+    vfx = getattr(cfg, "VOICE_FX", "highpass=f=80,equalizer=f=3500:t=q:w=1.5:g=1.5,deesser=i=0.2")   # обработка голоса (VOICE_FX — «студийная»)
+    fc = (f"[1:a]{vfx},asplit[v][vk];"
           "[2:a]volume=0.14[m];[m][vk]sidechaincompress=threshold=0.03:ratio=4:attack=30:release=600[md];"
           "[v][md]amix=inputs=2:normalize=0,loudnorm=I=-14:TP=-1.5[a]")
     subprocess.run(["ffmpeg", "-nostdin", "-loglevel", "error", "-y", "-i", f"{WORK}/video.mp4", "-i", f"{WORK}/voice.wav", "-i", f"{WORK}/music.wav",
