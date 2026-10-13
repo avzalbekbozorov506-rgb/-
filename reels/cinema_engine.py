@@ -101,8 +101,70 @@ def prepare(name):
         fw = int(BIG[0] * 0.92); fg = im.resize((fw, int(im.height * fw / im.width)), Image.LANCZOS); y = int(BIG[1] * 0.36) - fg.height // 2
         sh = Image.new("RGBA", BIG, (0, 0, 0, 0)); ImageDraw.Draw(sh).rectangle(((BIG[0] - fw) // 2 + 10, y + 20, (BIG[0] + fw) // 2 + 10, y + fg.height + 20), fill=(0, 0, 0, 200))
         bg = bg.convert("RGBA"); bg.alpha_composite(sh.filter(ImageFilter.GaussianBlur(25))); bg = bg.convert("RGB")
+        RECT[name] = ((BIG[0] - fw) // 2, y, (BIG[0] + fw) // 2, y + fg.height)
         bg.paste(fg, ((BIG[0] - fw) // 2, y)); ImageDraw.Draw(bg).rectangle(((BIG[0] - fw) // 2 - 3, y - 3, (BIG[0] + fw) // 2 + 2, y + fg.height + 2), outline=GOLD, width=3)
         return grade(bg)
+    s = max(BIG[0] / im.width, BIG[1] / im.height); RECT[name] = (0, 0, int(im.width * s), int(im.height * s))
+    return grade(im.resize((int(im.width * s), int(im.height * s)), Image.LANCZOS))
+RECT = {}   # картина -> прямоугольник самой картины внутри подложки (пиксели), для эффектов
+
+# ---------- «живые картины»: снег, дождь, рябь воды, свечение (FX = {картина: [(эффект, параметры), ...]}) ----------
+def fx_apply(name, im, t):
+    fx = getattr(cfg, "FX", {}).get(name)
+    if not fx: return im
+    x0, y0, x1, y1 = RECT[name]; rw, rh = x1 - x0, y1 - y0
+    im = im.copy()
+    for kind, o in fx:
+        bx = o.get("box", (0, 0, 1, 1)); X0, Y0, X1, Y1 = x0 + bx[0] * rw, y0 + bx[1] * rh, x0 + bx[2] * rw, y0 + bx[3] * rh
+        r = np.random.default_rng(o.get("seed", 7))
+        if kind in ("snow", "rain"):
+            n = o.get("n", 160 if kind == "snow" else 240); lay = Image.new("RGBA", im.size, (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
+            px, py, sp, sz, ph = r.random(n), r.random(n), r.uniform(0.6, 1.4, n), r.uniform(0.6, 1.6, n), r.random(n) * 6.28
+            H_ = Y1 - Y0
+            for k in range(n):
+                if kind == "snow":
+                    y = Y0 + (py[k] * H_ + sp[k] * o.get("speed", 0.09) * H_ * t) % H_
+                    x = X0 + (px[k] * (X1 - X0) + math.sin(t * 0.9 * sp[k] + ph[k]) * 14 * sz[k] + o.get("wind", 0.02) * (X1 - X0) * t) % (X1 - X0)
+                    rad = o.get("size", 3.2) * sz[k]; al = int(o.get("alpha", 210) * (0.55 + 0.45 * sz[k] / 1.6))
+                    d.ellipse((x - rad, y - rad, x + rad, y + rad), fill=(250, 250, 255, al))
+                else:
+                    ang = o.get("angle", 0.28); ln = o.get("len", 70) * sz[k]
+                    y = Y0 + (py[k] * H_ + sp[k] * o.get("speed", 1.1) * H_ * t) % H_
+                    x = X0 + (px[k] * (X1 - X0) + ang * (y - Y0)) % (X1 - X0)
+                    d.line((x, y, x - ang * ln, y - ln), fill=(225, 232, 240, int(o.get("alpha", 95) * sz[k] / 1.6)), width=max(1, int(2 * sz[k])))
+            lay = lay.crop((int(X0), int(Y0), int(X1), int(Y1))).filter(ImageFilter.GaussianBlur(o.get("blur", 1.0)))
+            base = im.convert("RGBA"); base.alpha_composite(lay, (int(X0), int(Y0))); im = base.convert("RGB")
+        elif kind == "shimmer":                                          # рябь: построчный сдвиг по синусоиде
+            a = np.asarray(im).copy(); amp, wl, sp_ = o.get("amp", 2.5), o.get("wl", 22), o.get("speed", 2.2)
+            for yy_ in range(int(Y0), int(Y1)):
+                sh = int(round(amp * math.sin(yy_ / wl * 6.283 + t * sp_) * (0.5 + 0.5 * (yy_ - Y0) / max(Y1 - Y0, 1))))
+                if sh: a[yy_, int(X0):int(X1)] = np.roll(a[yy_, int(X0):int(X1)], sh, axis=0)
+            im = Image.fromarray(a)
+        elif kind == "glow":                                             # пульсирующее свечение (луна, фонарь)
+            cx, cy = x0 + o["at"][0] * rw, y0 + o["at"][1] * rh; rad = o.get("r", 0.08) * rw
+            k_ = 0.75 + 0.25 * math.sin(t * o.get("speed", 1.3))
+            lay = Image.new("RGBA", im.size, (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
+            for j in range(12, 0, -1):
+                rr_ = rad * j / 12 * 2.2; d.ellipse((cx - rr_, cy - rr_, cx + rr_, cy + rr_), fill=o.get("color", (255, 236, 190)) + (int(o.get("alpha", 26) * k_),))
+            base = im.convert("RGBA"); base.alpha_composite(lay.filter(ImageFilter.GaussianBlur(rad * 0.4))); im = base.convert("RGB")
+    return im
+
+# ---------- видеоклипы вместо картин (CLIPS = {картина: "путь.mp4"}): кадры клипа растягиваются на длину сцены ----------
+CLIPF = {}
+def clip_frames(path):
+    if path not in CLIPF:
+        while len(CLIPF) >= 2: del CLIPF[next(iter(CLIPF))]            # в памяти не больше двух клипов (для перехода)
+        w, h = map(int, subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "csv=p=0", path], capture_output=True, text=True).stdout.strip().split(","))
+        raw = subprocess.run(["ffmpeg", "-nostdin", "-loglevel", "error", "-i", path, "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], capture_output=True).stdout
+        CLIPF[path] = np.frombuffer(raw, np.uint8).reshape(-1, h, w, 3)
+    return CLIPF[path]
+def clip_plate(name, lt, D):
+    fr = clip_frames(cfg.CLIPS[name]); n = len(fr); k = min(n - 1, max(0, int(lt / D * n)))
+    im = Image.fromarray(fr[k]); orig = Image.open(f"{HERE}/art/{name}.jpg")
+    if orig.width / orig.height > 1.0:                                   # горизонтальная: как картина в рамке
+        if name not in CACHE: plate(name)
+        bg = CACHE[name].copy(); x0, y0, x1, y1 = RECT[name]
+        bg.paste(grade(im.resize((x1 - x0, y1 - y0), Image.LANCZOS)), (x0, y0)); return bg
     s = max(BIG[0] / im.width, BIG[1] / im.height)
     return grade(im.resize((int(im.width * s), int(im.height * s)), Image.LANCZOS))
 CACHE = {}
@@ -213,7 +275,9 @@ def scene_frame(i, lt):
         im = im.resize((W, H), Image.BICUBIC, box=((W - cw) / 2, (H - ch) * 0.4, (W + cw) / 2, (H - ch) * 0.4 + ch)).convert("RGBA")
     else:
         z0, z1, (fx0, fy0), (fx1, fy1) = SCENES[i][5]; u = ease(lt / D) * 0.85 + (lt / D) * 0.15
-        im = camera(plate(src), z0 + (z1 - z0) * u, fx0 + (fx1 - fx0) * u, fy0 + (fy1 - fy0) * u).convert("RGBA")
+        pl = clip_plate(src, lt, D) if src in getattr(cfg, "CLIPS", {}) else plate(src)
+        if src not in getattr(cfg, "CLIPS", {}): pl = fx_apply(src, pl, lt)
+        im = camera(pl, z0 + (z1 - z0) * u, fx0 + (fx1 - fx0) * u, fy0 + (fy1 - fy0) * u).convert("RGBA")
     im.alpha_composite(OVER); im.alpha_composite(HEAD, (0, 0)); im.alpha_composite(text_layer(i, lt, D))
     if i == 0 and hasattr(cfg, "HOOK"): im.alpha_composite(hook_layer(lt))
     return im.convert("RGB")

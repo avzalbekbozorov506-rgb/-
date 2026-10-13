@@ -29,3 +29,13 @@ SCENES = [
     ("Сделай сегодня одно доброе дело. | И отправь это тому, кто для тебя важен.",
      "SUB", "", "hiroshige_tama_moon", "Утагава Хиросигэ. Осенняя луна над рекой Тама, ок. 1838", (1.0, 1.15, (0.5, 0.36), (0.5, 0.36))),
 ]
+
+# «живые картины»: координаты box/at — доли самой картины (0..1)
+FX = {
+    "hiroshige_snow_woman": [("snow", dict(n=150, speed=0.07, size=3.0))],
+    "hiroshige_shower": [("rain", dict(n=260, speed=1.2, angle=0.18, len=80, alpha=90))],
+    "hiroshige_kanbara": [("snow", dict(n=130, speed=0.06, size=2.6, box=(0.02, 0.03, 0.98, 0.97)))],
+    "hiroshige_massaki": [("shimmer", dict(box=(0.0, 0.62, 1.0, 0.92), amp=2.0, wl=18))],
+    "hiroshige_geese_moon": [("glow", dict(at=(0.62, 0.36), r=0.30, alpha=18))],
+    "hiroshige_tama_moon": [("glow", dict(at=(0.80, 0.22), r=0.05, alpha=40)), ("shimmer", dict(box=(0.0, 0.58, 1.0, 0.86), amp=2.0, wl=16))],
+}
