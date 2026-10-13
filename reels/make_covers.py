@@ -43,8 +43,10 @@ covers.append(make(cover_crop(Image.open(f"{HERE}/art/bronzino.jpg"), 0.5, 0.3, 
 ma = cfg("marcus_aurelius"); covers.append(make(cover_crop(ma.dark_studio(Image.open(f"{HERE}/art/ma_bronze.jpg").convert("RGB")), 0.5, 0.32, 1.25), "МАРК\nАВРЕЛИЙ", "«Наедине с собой» — 5 мыслей", "5 МЫСЛЕЙ", "04_mark_avreliy"))
 st = cfg("sun_tzu"); covers.append(make(st.s_intro(3.0, 9.0), "СУНЬ-ЦЗЫ", "«Искусство войны»", "5 ПРИНЦИПОВ", "05_sun_tszy"))
 tl = cfg("tolstoy_land"); covers.append(make(tl.s_fall(5.5, 7.1), "ТОЛСТОЙ", "«Много ли человеку земли нужно»", "ИСТОРИЯ", "06_tolstoy"))
+dp = cfg("dopamine_scale"); covers.append(make(dp.s_gremlins(6.6, 8.0), "ВЕСЫ", "Притча о дофамине", "ПРИТЧА", "07_vesy"))
 # превью сетки профиля: 3 колонки, кадр 3:4 по центру
-grid = Image.new("RGB", (3 * 360 + 8, 2 * 480 + 4), (255, 255, 255))
+covers = covers[::-1]                                                     # как в профиле: новое — первым
+rows = (len(covers) + 2) // 3; grid = Image.new("RGB", (3 * 360 + 8, rows * 484 - 4), (255, 255, 255))
 for k, c in enumerate(covers):
     t = c.convert("RGB").crop((0, 240, W, 1680)).resize((360, 480), Image.LANCZOS); grid.paste(t, ((k % 3) * 364, (k // 3) * 484))
 grid.save(f"{HERE}/covers/grid_preview.jpg", quality=92); print("ok")
