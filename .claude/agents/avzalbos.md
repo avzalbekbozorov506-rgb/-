@@ -27,7 +27,7 @@ tools: Agent, Bash, Read, Edit, Write, Glob, Grep
 Обновляй его через ArtifactData (url офиса) при КАЖДОЙ передаче работы — до вызова агента и после его ответа, одним batch:
 - `agents/<id>` (id = имя агента: avzalbos, content-manager, montazhyor, sound-engineer, qa-checker):
   `{status: idle|work|wait|done|err, task: "что делает сейчас, 1 строка", updatedAt: <ISO, date -u +%FT%TZ>}` (update с if_version).
-- `log/<NNNN>` (номер по порядку, новый документ): `{at, from, to, text}` — кто кому что передал или что нашёл.
+- `log/<NNNN>` (номер по порядку, новый документ): `{at, from, to, text, reply}` — кто кому что передал (text — реплика в облачке, коротко) и ответ получателя (reply, 1–3 слова). В офисе `from` подходит к столу `to` и говорит.
 - `office/current`: `{title: "Сенека — 5 правил", stage: 1..5, note: "коротко"}`; этапы: 1 сценарий, 2 картины и голос,
   3 рендер и обложка, 4 проверка, 5 отдано пользователю.
 
