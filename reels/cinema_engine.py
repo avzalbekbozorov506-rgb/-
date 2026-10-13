@@ -26,7 +26,18 @@ model = torch.package.PackageImporter(SILERO).load_pickle("tts_models", "model")
 SR = 48000; voice, STARTS, DURS, t0 = [], [], [], 0.0
 PHRASES = {}   # сцена -> [(начало, конец, текст)] — для субтитров, точно совпадающих с голосом
 def clean(t): return t.replace("+", "")
-def tts(text, spk): return model.apply_tts(text=text, speaker=spk, sample_rate=SR, put_accent=True, put_yo=True).numpy()
+def tts(text, spk):
+    sx = getattr(cfg, "SSML", None)
+    if not sx: return model.apply_tts(text=text, speaker=spk, sample_rate=SR, put_accent=True, put_yo=True).numpy()
+    t = text.replace(" — ", ' <break time="%dms"/> ' % sx.get("dash", 260))                     # естественные паузы
+    t = t.replace(". ", '. <break time="%dms"/> ' % sx.get("dot", 380)).replace(": ", ': <break time="%dms"/> ' % sx.get("colon", 240))
+    a = model.apply_tts(ssml_text=f"<speak><prosody rate='{sx.get('rate', 'medium')}' pitch='{sx.get('pitch', 'medium')}'>{t}</prosody></speak>", speaker=spk, sample_rate=SR).numpy()
+    tempo = sx.get("tempo", 1.0)
+    if tempo != 1.0:                                                     # замедление без изменения высоты голоса
+        src, dst = f"{WORK}/_t_in.wav", f"{WORK}/_t_out.wav"; wavfile.write(src, SR, (a * 32767).astype(np.int16))
+        subprocess.run(["ffmpeg", "-nostdin", "-loglevel", "error", "-y", "-i", src, "-af", f"atempo={tempo}", dst], check=True)
+        a = wavfile.read(dst)[1].astype(np.float32) / 32767
+    return a
 LEAD0 = getattr(cfg, "LEAD0", LEAD)      # первая фраза может звучать сразу — хук в первую секунду
 for i, sc in enumerate(SCENES):
     LEAD = LEAD0 if i == 0 else LEAD_N

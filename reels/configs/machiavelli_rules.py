@@ -4,9 +4,10 @@ HEAD = ("МАКИАВЕЛЛИ", "«ГОСУДАРЬ», 1513  ·  ЧАСТЬ 2")
 TITLE = ("МАКИАВЕЛЛИ", "", "")
 HOOK = ("ЭТУ КНИГУ\nЗАПРЕЩАЛА\nЦЕРКОВЬ", 2.9)
 HOOK_Y = 780
-SPEAKER = "aidar"
+SPEAKER = "eugene"
+SSML = dict(rate="slow", pitch="low", tempo=0.9, dot=420, dash=300, colon=260)   # голос №3, медленнее и с паузами
 SUB_STYLE, SUB_FONT, QUOTE_SIZE, SUB_CHARS = "karaoke", "Bold", 70, 24
-LEAD0, FADE_IN, GAP, TAIL = 0.05, 0.12, 0.16, 0.7
+LEAD0, FADE_IN, GAP, TAIL = 0.05, 0.12, 0.42, 0.9
 TEXT_DY, BOT_ALPHA = 120, 236
 
 C_FIOR = "Томмазо Фьорентино. Портрет мужчины, 1521"
