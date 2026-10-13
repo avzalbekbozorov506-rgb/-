@@ -1,0 +1,129 @@
+<title>Офис Авзалбеков</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: монтажный стол сверху вниз — плёнка-цепочка этапов, затем столы сотрудников, затем журнал передач */
+:root{
+  --bg:#ECEDE6; --panel:#F8F8F3; --ink:#1B211E; --muted:#5E6862; --line:#D3D6CC;
+  --accent:#A4262C; --gold:#9A7A2E;
+  --s-idle:#7D867F; --s-work:#1F6FB2; --s-wait:#B07A12; --s-done:#2E7D4F; --s-err:#B3261E;
+  --display:"Unbounded",system-ui,sans-serif; --body:"Golos Text",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121614; --panel:#1B201D; --ink:#E9ECE6; --muted:#9AA39D; --line:#2C332F;
+  --accent:#E0575C; --gold:#D3B061;
+  --s-idle:#8A938D; --s-work:#5AA6EA; --s-wait:#E2A93B; --s-done:#5BBE83; --s-err:#F07169; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121614; --panel:#1B201D; --ink:#E9ECE6; --muted:#9AA39D; --line:#2C332F;
+  --accent:#E0575C; --gold:#D3B061;
+  --s-idle:#8A938D; --s-work:#5AA6EA; --s-wait:#E2A93B; --s-done:#5BBE83; --s-err:#F07169; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body)}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:16px;padding-block:20px 40px;display:grid;gap:22px}
+header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:8px 16px}
+.eyebrow{font:600 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+h1{font:700 clamp(24px,5vw,34px)/1.1 var(--display);margin:6px 0 0;text-wrap:balance}
+.live{font:12px var(--mono);color:var(--muted);display:flex;align-items:center;gap:8px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--s-idle)}
+.live.on .dot{background:var(--s-done);animation:pulse 2s infinite}
+@keyframes pulse{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+
+.reel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:12px}
+.reel-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 12px;align-items:baseline}
+.reel-name{font:600 17px var(--body)}
+.reel-meta{font:12px var(--mono);color:var(--muted)}
+.film{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;overflow-x:auto}
+.frame{border-radius:4px;padding:8px 8px 7px;background:var(--bg);border:1px solid var(--line);font:500 12px/1.25 var(--body);color:var(--muted);min-width:0}
+.frame b{display:block;font:600 10px var(--mono);letter-spacing:.08em;margin-bottom:3px}
+.frame.done{border-color:var(--s-done);color:var(--ink)} .frame.done b{color:var(--s-done)}
+.frame.now{border-color:var(--s-work);background:color-mix(in srgb,var(--s-work) 12%,var(--panel));color:var(--ink)} .frame.now b{color:var(--s-work)}
+
+.desks{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.desk{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:10px;grid-template-rows:auto auto 1fr auto;position:relative}
+.desk.boss{border-color:var(--gold)}
+.who{display:flex;gap:12px;align-items:center}
+.ava{flex:none;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font:700 15px var(--display);color:#fff}
+.who div{min-width:0}
+.name{font:600 16px var(--body)}
+.role{font:12px var(--mono);color:var(--muted)}
+.pill{justify-self:start;font:600 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:4px 9px;border-radius:99px;border:1px solid currentColor;display:inline-flex;gap:6px;align-items:center}
+.pill i{width:6px;height:6px;border-radius:50%;background:currentColor}
+.st-idle{color:var(--s-idle)} .st-work{color:var(--s-work)} .st-wait{color:var(--s-wait)} .st-done{color:var(--s-done)} .st-err{color:var(--s-err)}
+.st-work i{animation:pulse 1.2s infinite}
+.task{font-size:14px;min-width:0;overflow-wrap:anywhere}
+.task.empty{color:var(--muted)}
+.when{font:11px var(--mono);color:var(--muted);border-top:1px dashed var(--line);padding-top:8px}
+
+h2{font:700 15px var(--display);margin:0 0 10px}
+.log{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 16px}
+.row{display:grid;grid-template-columns:52px minmax(0,1fr);gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.t{font:12px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums;padding-top:2px}
+.msg{min-width:0;overflow-wrap:anywhere}
+.msg .from{font-weight:600}
+.msg .arrow{color:var(--muted)}
+.msg .text{color:var(--muted);display:block;font-size:14px}
+.empty-state{color:var(--muted);padding:14px 0;font-size:14px}
+@media (max-width:520px){.film{grid-template-columns:repeat(5,minmax(96px,1fr))}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div><div class="eyebrow">Мысли веков · студия Reels</div><h1>Офис Авзалбеков</h1></div>
+    <div class="live" id="live"><span class="dot"></span><span id="liveText">подключение…</span></div>
+  </header>
+
+  <section class="reel" aria-label="Текущий ролик">
+    <div class="reel-top"><span class="reel-name" id="reelName">Ролик пока не запущен</span><span class="reel-meta" id="reelMeta">ждём задачу от тебя</span></div>
+    <div class="film" id="film"></div>
+  </section>
+
+  <section class="desks" id="desks" aria-label="Сотрудники"></section>
+
+  <section><h2>Журнал передач</h2><div class="log" id="log"><div class="empty-state">Здесь появится, кто кому что передал.</div></div></section>
+</div>
+
+<script>
+const TEAM=[
+ {id:"avzalbos",name:"Авзалбек-Бос",role:"координатор",ini:"Бос",c:"#9A7A2E",boss:true},
+ {id:"content-manager",name:"Авзалбек-Контент",role:"контент-менеджер",ini:"К",c:"#7A4FA8"},
+ {id:"montazhyor",name:"Авзалбек-Монтаж",role:"монтажёр",ini:"М",c:"#1F6FB2"},
+ {id:"sound-engineer",name:"Авзалбек-Звук",role:"звукорежиссёр",ini:"З",c:"#2E7D4F"},
+ {id:"qa-checker",name:"Авзалбек-Контроль",role:"проверяющий",ini:"П",c:"#A4262C"}];
+const STAGES=[["1","Сценарий"],["2","Картины и голос"],["3","Рендер и обложка"],["4","Проверка"],["5","Отдано тебе"]];
+const ST={idle:"свободен",work:"работает",wait:"ждёт",done:"готово",err:"ошибка"};
+const byId=Object.fromEntries(TEAM.map(a=>[a.id,a]));
+const agents={}; let current=null;
+const $=s=>document.querySelector(s);
+const el=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
+function ago(ts){if(!ts)return"ещё не работал";const d=new Date(ts);if(isNaN(d))return"";const m=Math.round((Date.now()-d)/60000);
+ const hm=d.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"});return m<1?`только что · ${hm}`:m<60?`${m} мин назад · ${hm}`:`${d.toLocaleDateString("ru-RU",{day:"numeric",month:"short"})} · ${hm}`}
+function renderDesks(){const box=$("#desks");box.replaceChildren();
+ for(const a of TEAM){const s=agents[a.id]||{};const st=ST[s.status]?s.status:"idle";
+  const d=el("article","desk"+(a.boss?" boss":""));
+  const who=el("div","who");const av=el("div","ava",a.ini);av.style.background=a.c;
+  const t=el("div");t.append(el("div","name",a.name),el("div","role",a.role));who.append(av,t);
+  const p=el("span","pill st-"+st);p.append(el("i"),document.createTextNode(ST[st]));
+  d.append(who,p,el("div","task"+(s.task?"":" empty"),s.task||"Ждёт задачу"),el("div","when",ago(s.updatedAt)));box.append(d)}}
+function renderReel(){const f=$("#film");f.replaceChildren();const stage=Number(current?.stage)||0;
+ $("#reelName").textContent=current?.title||"Ролик пока не запущен";
+ $("#reelMeta").textContent=current?(current.note||`этап ${stage} из 5`):"ждём задачу от тебя";
+ STAGES.forEach(([n,l],i)=>{const fr=el("div","frame"+(i+1<stage?" done":i+1===stage?" now":""));fr.append(el("b",null,n),document.createTextNode(l));f.append(fr)})}
+function renderLog(docs){const box=$("#log");box.replaceChildren();
+ if(!docs.length){box.append(el("div","empty-state","Здесь появится, кто кому что передал."));return}
+ for(const x of docs){const r=el("div","row");const d=new Date(x.at);
+  r.append(el("div","t",isNaN(d)?"":d.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"})));
+  const m=el("div","msg");m.append(el("span","from",byId[x.from]?.name||x.from||"?"));
+  if(x.to){m.append(el("span","arrow"," → "),el("span","from",byId[x.to]?.name||x.to))}
+  m.append(el("span","text",x.text||""));r.append(m);box.append(r)}}
+renderDesks();renderReel();
+setInterval(renderDesks,60000);
+(async()=>{const db=await claude?.use?.("db");
+ if(!db){$("#liveText").textContent="нет связи с офисом";return}
+ $("#live").classList.add("on");$("#liveText").textContent="в эфире";
+ db.collection("agents").onSnapshot(s=>{for(const d of s.docs)agents[d.id]=d.data()||{};renderDesks()});
+ db.doc("office/current").onSnapshot(s=>{current=s.exists?s.data():null;renderReel()});
+ db.collection("log").orderBy("at","desc").limit(40).onSnapshot(s=>renderLog(s.docs.map(d=>d.data()||{})),
+  ()=>{$("#liveText").textContent="журнал недоступен"});
+})();
+</script>
