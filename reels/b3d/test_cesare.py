@@ -1,0 +1,17 @@
+import sys, os; sys.path.insert(0, os.path.dirname(__file__))
+import kit, chars, math
+kit.reset()
+ces = chars.man("Cesare", skin=(0.80, 0.56, 0.44), hair=(0.30, 0.16, 0.08), iris=(0.50, 0.33, 0.16), coat=(0.07, 0.065, 0.07),
+                frown=0.5, lids=0.35, nose=1.1, jaw=1.05)
+ces["head"].rotation_euler = (math.radians(4), 0, math.radians(-12))
+wall = kit.mat("wall", (0.36, 0.27, 0.2), rough=0.9, noise=0.35, nscale=6)
+kit.box("wall", (6, 0.2, 4), (0, 2.0, 1.5), wall)
+kit.box("floor", (6, 6, 0.1), (0, 0, -0.05), wall)
+kit.area("key", (-1.2, -1.4, 2.1), (0, 0, 1.6), 80, size=0.8, color=(1.0, 0.8, 0.6))
+kit.area("rim", (1.1, 1.0, 2.2), (0, 0, 1.6), 220, size=0.5, color=(0.7, 0.8, 1.0))
+kit.area("fill", (1.2, -1.6, 1.4), (0, 0, 1.5), 10, size=2, color=(0.7, 0.8, 1.0))
+kit.point("candle", (-0.45, -0.5, 1.25), 6, (1, 0.7, 0.45))
+kit.world((0.05, 0.06, 0.08), 1.0)
+kit.camera((0.15, -1.25, 1.66), (0, 0, 1.6), lens=70, fstop=2.0, focus=(0, -0.09, 1.65))
+kit.setup_render(samples=int(sys.argv[-1]) if sys.argv[-1].isdigit() else 32, res=(1080, 1920), pct=40)
+kit.render("/tmp/claude-0/t/cesare.png")
