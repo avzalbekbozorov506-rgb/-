@@ -6,3 +6,4 @@ work/
 v5_ru.pt
 voices/*.onnx
 voices/*.onnx.json
+hq/
