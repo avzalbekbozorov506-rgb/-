@@ -151,3 +151,27 @@ def setup_render(samples=64, res=(1080, 1920), pct=100, vol_step=0.2, bounces=6)
 
 def render(path):
     sc = bpy.context.scene; sc.render.filepath = path; bpy.ops.render.render(write_still=True)
+
+def sky(stops, strength=1.0, fog=0.0, fog_color=(1, 1, 1), aniso=0.3):
+    """Небо-градиент по высоте взгляда: stops = [(высота −1..1, цвет sRGB), ...]."""
+    w = world((0, 0, 0), strength, fog, fog_color, aniso); N = w.node_tree.nodes; L = w.node_tree.links
+    tc = N.new("ShaderNodeTexCoord"); sp = N.new("ShaderNodeSeparateXYZ"); L.new(tc.outputs["Generated"], sp.inputs[0])
+    mr = N.new("ShaderNodeMapRange"); mr.inputs["From Min"].default_value = -1; mr.inputs["From Max"].default_value = 1; L.new(sp.outputs["Z"], mr.inputs["Value"])
+    ramp = N.new("ShaderNodeValToRGB"); cr = ramp.color_ramp
+    for k, (h, c) in enumerate(stops):
+        e = cr.elements[k] if k < 2 else cr.elements.new(0); e.position = (h + 1) / 2; e.color = (*lin(c), 1)
+    L.new(mr.outputs["Result"], ramp.inputs["Fac"]); L.new(ramp.outputs["Color"], N["Background"].inputs[0])
+    return w
+
+def sun(name, direction_deg, energy, color=(1, 1, 1), angle=2.0):
+    l = bpy.data.lights.new(name, "SUN"); l.energy = energy; l.color = lin(color); l.angle = math.radians(angle)
+    ob = link(bpy.data.objects.new(name, l)); ob.rotation_euler = [math.radians(a) for a in direction_deg]; return ob
+
+def prism_roof(name, w, d, h, co, material, rot_z=0, over=0.25):
+    """Двускатная крыша: конёк вдоль X."""
+    me = bpy.data.meshes.new(name); W_, D_ = w / 2 + over, d / 2 + over
+    v = [(-W_, -D_, 0), (W_, -D_, 0), (W_, D_, 0), (-W_, D_, 0), (-W_, 0, h), (W_, 0, h)]
+    f = [(0, 1, 5, 4), (2, 3, 4, 5), (0, 4, 3), (1, 2, 5), (0, 3, 2, 1)]
+    me.from_pydata(v, [], f); me.update(); ob = link(bpy.data.objects.new(name, me)); ob.location = co; ob.rotation_euler[2] = math.radians(rot_z)
+    m = ob.modifiers.new("t", "SOLIDIFY"); m.thickness = 0.12
+    me.materials.append(material); return ob
