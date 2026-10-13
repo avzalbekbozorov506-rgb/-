@@ -26,7 +26,21 @@ model = torch.package.PackageImporter(SILERO).load_pickle("tts_models", "model")
 SR = 48000; voice, STARTS, DURS, t0 = [], [], [], 0.0
 PHRASES = {}   # сцена -> [(начало, конец, текст)] — для субтитров, точно совпадающих с голосом
 def clean(t): return t.replace("+", "")
+_VOSK = None
 def tts(text, spk):
+    vk = getattr(cfg, "VOSK", None)
+    if vk:                                                               # Vosk TTS: ударения по словарю, чистое произношение; паузы — между предложениями
+        global _VOSK
+        import re, scipy.signal as ss_
+        if _VOSK is None:
+            from vosk_tts import Model as VM, Synth as VS
+            _VOSK = VS(VM(model_name=vk.get("model", "vosk-model-tts-ru-0.9-multi")))
+        parts = [p for p in re.split(r"(?<=[.:!?])\s+", re.sub(r"[«»“”\"]", "", text.replace("+", ""))) if p.strip()]; out = []
+        for k, p in enumerate(parts):
+            a = np.asarray(_VOSK.synth_audio(p, speaker_id=vk.get("speaker", 4), speech_rate=vk.get("rate", 1.0)), np.float32) / 32768.0
+            out.append(ss_.resample_poly(a, SR, 22050).astype(np.float32))
+            if k < len(parts) - 1: out.append(np.zeros(int(SR * vk.get("dot", 380) / 1000), np.float32))
+        return np.concatenate(out)
     pr = getattr(cfg, "PROSODY", None)
     if pr:                                                               # «голос B»: темп и тон задаёт сам синтезатор (SSML), фраза целиком — живая интонация
         import re
