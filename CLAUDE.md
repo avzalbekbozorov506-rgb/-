@@ -15,6 +15,10 @@
 - Концовка — призыв: «Напиши номер в комментариях».
 - Один ролик в день, не больше.
 
+## Субагенты (`.claude/agents/`)
+Конвейер ролика: `reels-art-finder` (картины) и `reels-scriptwriter` (конфиг, факты, описание) — параллельно →
+`reels-voice-checker` (Whisper) → `reels-renderer` (превью, рендер, HQ) и `reels-cover-maker` (обложка) — параллельно.
+
 ## Как собрать новый ролик (стиль «картины»)
 
 Образец: `reels/configs/seneca_rules.py` и `reels/configs/machiavelli_rules.py`. Копируй конфиг и меняй:
