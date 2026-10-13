@@ -7,7 +7,7 @@ from series_art import ART
 VOICE = sys.argv[1] if len(sys.argv) > 1 else "vosk"
 V = {"vosk": 'VOSK = dict(speaker=4, rate=1.0, dot=340)   # «студийный» голос Vosk TTS (диктор 4)',
      "xtts": 'XTTS = dict(speaker="Damien Black", tries=6)   # живой голос XTTS-v2, каждое предложение проверено Whisper (xtts_prepare.py)'}[VOICE]
-CAM = {(3, "s5"): (1.25, 1.4, (0.5, 0.8), (0.5, 0.74))}   # ручная камера для картин, где главное не в центре
+CAM = {(3, "s5"): (1.25, 1.4, (0.5, 0.8), (0.5, 0.74)), (5, "s2"): (1.3, 1.42, (0.6, 0.62), (0.62, 0.55))}   # ручная камера для картин, где главное не в центре
 def fn(f): return f"met_{f}" if isinstance(f, int) else f
 for s in SERIES:
     n, art = s["n"], ART[s["n"]]; lines = []
