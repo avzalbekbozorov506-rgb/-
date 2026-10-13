@@ -21,10 +21,21 @@ LEAD, TAIL, XF = 0.6, 1.0, 0.7
 # ---------- озвучка ----------
 model = torch.package.PackageImporter(SILERO).load_pickle("tts_models", "model"); model.to("cpu")
 SR = 48000; voice, STARTS, DURS, t0 = [], [], [], 0.0
-for sc in SCENES:
-    spk = sc[6] if len(sc) > 6 and sc[6] else getattr(cfg, "SPEAKER", "aidar")   # голос можно задать для каждой сцены
-    a = model.apply_tts(text=sc[0], speaker=spk, sample_rate=SR, put_accent=True, put_yo=True).numpy()
-    STARTS.append(t0); DURS.append(LEAD + len(a) / SR + TAIL); voice.append((t0 + LEAD, a)); t0 += DURS[-1]
+PHRASES = {}   # сцена -> [(начало, конец, текст)] — для субтитров, точно совпадающих с голосом
+def clean(t): return t.replace("+", "")
+def tts(text, spk): return model.apply_tts(text=text, speaker=spk, sample_rate=SR, put_accent=True, put_yo=True).numpy()
+for i, sc in enumerate(SCENES):
+    spk0 = sc[6] if len(sc) > 6 and sc[6] else getattr(cfg, "SPEAKER", "aidar")   # голос можно задать для каждой сцены
+    if sc[1] == "SUB":                                                   # режим субтитров: каждая фраза озвучивается отдельно
+        cur, parts = LEAD, []
+        for ph in [p.strip() for p in sc[0].split("|") if p.strip()]:
+            spk = spk0
+            if ph.startswith("@"): spk, ph = ph[1:].split(":", 1); ph = ph.strip()
+            a = tts(ph, spk); voice.append((t0 + cur, a)); parts.append((cur, cur + len(a) / SR, clean(ph))); cur += len(a) / SR + 0.22
+        PHRASES[i] = parts; dur = cur - 0.22 + TAIL
+    else:
+        a = tts(sc[0], spk0); voice.append((t0 + LEAD, a)); dur = LEAD + len(a) / SR + TAIL
+    STARTS.append(t0); DURS.append(dur); t0 += dur
 DUR = t0
 track = np.zeros(int(DUR * SR) + SR)
 for st, a in voice: track[int(st * SR):int(st * SR) + len(a)] += a
@@ -105,6 +116,31 @@ def text_layer(i, lt, D):
         d.line(((W // 2 - 120, 1345 + TDY), (W // 2 + 120, 1345 + TDY)), fill=GOLD + (int(200 * a),), width=2)
         b = ease((lt - 1.4) / 1.0) * out; d.text((W // 2, 1410 + TDY), line2, font=serif("MediumItalic", 58), fill=WHITE + (int(235 * b),), anchor="mm")
         c = ease((lt - 3.0) / 1.0) * out; spaced(d, (W // 2, 1500 + TDY), line3, sans("Medium", 24), GOLD + (int(230 * c),), 4)
+    elif text == "SUB":
+        a = ease((lt - 0.2) / 0.6) * out
+        if tag: spaced(d, (W // 2, 1135 + TDY), tag, F_TAG, GOLD + (int(240 * a),), 6)
+        parts = PHRASES[i]; cur = None
+        for k, (st, en, ph) in enumerate(parts):
+            nxt = parts[k + 1][0] if k + 1 < len(parts) else D
+            if st - 0.08 <= lt < max(en + 0.35, nxt - 0.02) or (k == len(parts) - 1 and lt >= st): cur = (st, en, ph)
+        if cur:
+            st, en, ph = cur; fin = ease((lt - st + 0.08) / 0.18) * out
+            words = ph.split(); lines, line = [], ""
+            for w_ in words:
+                if len(line) + len(w_) + 1 > getattr(cfg, "SUB_CHARS", 26) and line: lines.append(line); line = w_
+                else: line = (line + " " + w_).strip()
+            lines.append(line)
+            size = getattr(cfg, "QUOTE_SIZE", 72); fq = serif("MediumItalic", size)
+            while size > 50 and max(d.textlength(l, font=fq) for l in lines) > 960: size -= 2; fq = serif("MediumItalic", size)
+            total = sum(len(w_) + 1 for w_ in words); prog = (lt - st) / max(en - st, 0.1) * total; done = 0
+            y0 = 1215 + TDY + int((1 - fin) * 14)
+            for k, l in enumerate(lines):                                   # слова подсвечиваются по мере произнесения
+                ws = l.split(); lw = d.textlength(l, font=fq); x = W // 2 - lw / 2; y = y0 + k * int(size * 1.18)
+                for w_ in ws:
+                    spoken = done + len(w_) * 0.5 <= prog; done += len(w_) + 1
+                    col = WHITE if spoken else (205, 196, 182); al = int(255 * fin) if spoken else int(150 * fin)
+                    d.text((x + 2, y + 3), w_, font=fq, fill=(0, 0, 0, int(110 * fin)), anchor="lm"); d.text((x, y), w_, font=fq, fill=col + (al,), anchor="lm")
+                    x += d.textlength(w_ + " ", font=fq)
     else:
         a = ease((lt - 0.2) / 0.6) * out; spaced(d, (W // 2, 1135 + TDY), tag, F_TAG, GOLD + (int(240 * a),), 6)
         lines = text.split("\n"); speak = D - LEAD - TAIL; size = getattr(cfg, "QUOTE_SIZE", 80)
