@@ -27,6 +27,13 @@ SR = 48000; voice, STARTS, DURS, t0 = [], [], [], 0.0
 PHRASES = {}   # сцена -> [(начало, конец, текст)] — для субтитров, точно совпадающих с голосом
 def clean(t): return t.replace("+", "")
 def tts(text, spk):
+    pr = getattr(cfg, "PROSODY", None)
+    if pr:                                                               # «голос B»: темп и тон задаёт сам синтезатор (SSML), фраза целиком — живая интонация
+        import re
+        t = re.sub(r"([:.!?])\s+", lambda m: m.group(1) + f' <break time="{pr.get("dot", 380)}ms"/> ', text)
+        t = re.sub(r",\s+", f', <break time="{pr.get("comma", 180)}ms"/> ', t).replace(" — ", f' <break time="{pr.get("dash", 260)}ms"/> ')
+        return model.apply_tts(ssml_text=f'<speak><prosody rate="{pr.get("rate", "slow")}" pitch="{pr.get("pitch", "low")}">{t}</prosody></speak>',
+                               speaker=spk, sample_rate=SR, put_accent=True, put_yo=True).numpy()
     sx = getattr(cfg, "SSML", None)
     if not sx: return model.apply_tts(text=text, speaker=spk, sample_rate=SR, put_accent=True, put_yo=True).numpy()
     # «естественный» режим: ударения ставит модель, паузы — тишина между частями фразы, темп и тон — через ffmpeg
@@ -276,7 +283,8 @@ def scene_frame(i, lt):
     else:
         z0, z1, (fx0, fy0), (fx1, fy1) = SCENES[i][5]; u = ease(lt / D) * 0.85 + (lt / D) * 0.15
         pl = clip_plate(src, lt, D) if src in getattr(cfg, "CLIPS", {}) else plate(src)
-        if src not in getattr(cfg, "CLIPS", {}): pl = fx_apply(src, pl, lt)
+        if src in getattr(cfg, "CLIPS", {}) and src not in RECT: plate(src)
+        pl = fx_apply(src, pl, lt)
         im = camera(pl, z0 + (z1 - z0) * u, fx0 + (fx1 - fx0) * u, fy0 + (fy1 - fy0) * u).convert("RGBA")
     im.alpha_composite(OVER); im.alpha_composite(HEAD, (0, 0)); im.alpha_composite(text_layer(i, lt, D))
     if i == 0 and hasattr(cfg, "HOOK"): im.alpha_composite(hook_layer(lt))

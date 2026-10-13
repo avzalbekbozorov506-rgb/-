@@ -5,7 +5,7 @@ TITLE = ("", "", "")
 HOOK = ("ТЫ ВАЖНЕЕ,\nЧЕМ ДУМАЕШЬ", 3.0)
 HOOK_Y = 360
 SPEAKER = "eugene"
-SSML = dict(pitch=0.93, tempo=0.86, dot=420, dash=300)   # голос №3
+PROSODY = dict(rate="slow", pitch="low", dot=380, comma=180, dash=260)   # «голос B»: eugene, медленно и низко средствами самого синтезатора
 SUB_STYLE, SUB_FONT, QUOTE_SIZE, SUB_CHARS = "karaoke", "Bold", 70, 24
 LEAD0, FADE_IN, GAP, TAIL = 0.05, 0.12, 0.42, 0.9
 TEXT_DY, BOT_ALPHA = 120, 236
@@ -22,7 +22,7 @@ SCENES = [
      "SUB", "", "shuncho_teahouse", "Кацукава Сюнтё. Девушки на веранде чайного домика", (1.1, 1.25, (0.6, 0.55), (0.65, 0.5))),
     ("А кто-то не сдался в трудный день, | потому что ты в него поверил.",
      "SUB", "", "hiroshige_kanbara", "Утагава Хиросигэ. Снежный вечер в Камбаре, ок. 1833", (1.0, 1.15, (0.5, 0.36), (0.5, 0.36))),
-    ("Ты не видишь этих следов. | Но они остаются.",
+    ("Ты не видишь этих следов. | Но эти следы остаются.",
      "SUB", "", "hiroshige_massaki", "Утагава Хиросигэ. Ясная погода после снега в Массаки", (1.0, 1.15, (0.5, 0.36), (0.5, 0.36))),
     ("Сен+ека писал: | где есть человек, | там есть место для добра.",
      "SUB", "СЕНЕКА  ·  «О СЧАСТЛИВОЙ ЖИЗНИ»", "hiroshige_geese_moon", "Утагава Хиросигэ. Дикие гуси под полной луной, ок. 1833", (1.0, 1.15, (0.5, 0.45), (0.5, 0.35))),
@@ -39,3 +39,28 @@ FX = {
     "hiroshige_geese_moon": [("glow", dict(at=(0.62, 0.36), r=0.30, alpha=18))],
     "hiroshige_tama_moon": [("glow", dict(at=(0.80, 0.22), r=0.05, alpha=40)), ("shimmer", dict(box=(0.0, 0.58, 1.0, 0.86), amp=2.0, wl=16))],
 }
+
+# «оживление» фигур (animate_art.py): box — рамка фигуры в долях картины; клипы → work/clips/<картина>.mp4
+PUPPET_DUR = 7.0
+PUPPET = {
+    "hiroshige_snow_woman": [dict(box=(0.25, 0.38, 1.0, 0.99), sway=1.2, bob=0.006, step=1.4, move=(0.012, 0), freq=0.35)],
+    "harunobu_writing": [dict(box=(0.18, 0.55, 0.62, 0.93), sway=0.8, breathe=0.004, freq=0.3),
+                         dict(box=(0.53, 0.27, 0.80, 0.92), sway=0.7, breathe=0.004, freq=0.25, phase=1.5)],
+    "hiroshige_shower": [dict(box=(0.25, 0.60, 0.38, 0.73), sway=2.0, bob=0.03, step=1.8, move=(0.006, 0.002)),
+                         dict(box=(0.38, 0.58, 0.48, 0.69), sway=2.0, bob=0.03, step=1.8, move=(0.006, 0.002), phase=1.0),
+                         dict(box=(0.53, 0.52, 0.63, 0.64), sway=2.0, bob=0.03, step=1.8, move=(-0.006, 0.002), phase=2.0),
+                         dict(box=(0.63, 0.51, 0.72, 0.61), sway=2.0, bob=0.03, step=1.8, move=(-0.006, 0.002), phase=0.5),
+                         dict(box=(0.12, 0.46, 0.31, 0.54), sway=0.6, move=(0.01, 0), freq=0.2, pivot=(0.5, 0.5))],
+    "shuncho_teahouse": [dict(box=(0.04, 0.33, 0.27, 0.97), sway=0.6, breathe=0.004, freq=0.3),
+                         dict(box=(0.35, 0.12, 0.60, 0.62), sway=0.5, breathe=0.003, freq=0.25, phase=1.0),
+                         dict(box=(0.40, 0.45, 0.63, 0.95), sway=0.7, breathe=0.004, freq=0.35, phase=2.0),
+                         dict(box=(0.65, 0.45, 0.96, 0.83), sway=0.7, breathe=0.004, freq=0.3, phase=3.0)],
+    "hiroshige_kanbara": [dict(box=(0.32, 0.58, 0.42, 0.84), sway=2.0, bob=0.02, step=1.4, move=(0.006, -0.003)),
+                          dict(box=(0.66, 0.60, 0.78, 0.81), sway=2.0, bob=0.02, step=1.4, move=(-0.006, -0.003), phase=1.2)],
+    "hiroshige_massaki": [dict(box=(0.36, 0.61, 0.47, 0.86), sway=2.5, freq=0.4),
+                          dict(box=(0.57, 0.65, 0.68, 0.89), sway=2.5, freq=0.35, phase=1.4),
+                          dict(box=(0.07, 0.61, 0.52, 0.87), sway=0.5, freq=0.25, pivot=(0.5, 0.5), move=(0.015, 0))],
+    "hiroshige_geese_moon": [dict(box=(0.10, 0.28, 0.97, 0.53), sway=3.0, freq=0.45, pivot=(0.5, 0.5), move=(-0.02, 0.03)),
+                             dict(box=(0.10, 0.50, 0.88, 0.76), sway=3.0, freq=0.45, pivot=(0.5, 0.5), move=(-0.02, 0.03), phase=1.6)],
+}
+CLIPS = {k: f"work/clips/{k}.mp4" for k in PUPPET}
