@@ -29,13 +29,18 @@ def clean(t): return t.replace("+", "")
 def tts(text, spk):
     sx = getattr(cfg, "SSML", None)
     if not sx: return model.apply_tts(text=text, speaker=spk, sample_rate=SR, put_accent=True, put_yo=True).numpy()
-    t = text.replace(" — ", ' <break time="%dms"/> ' % sx.get("dash", 260))                     # естественные паузы
-    t = t.replace(". ", '. <break time="%dms"/> ' % sx.get("dot", 380)).replace(": ", ': <break time="%dms"/> ' % sx.get("colon", 240))
-    a = model.apply_tts(ssml_text=f"<speak><prosody rate='{sx.get('rate', 'medium')}' pitch='{sx.get('pitch', 'medium')}'>{t}</prosody></speak>", speaker=spk, sample_rate=SR).numpy()
-    tempo = sx.get("tempo", 1.0)
-    if tempo != 1.0:                                                     # замедление без изменения высоты голоса
-        src, dst = f"{WORK}/_t_in.wav", f"{WORK}/_t_out.wav"; wavfile.write(src, SR, (a * 32767).astype(np.int16))
-        subprocess.run(["ffmpeg", "-nostdin", "-loglevel", "error", "-y", "-i", src, "-af", f"atempo={tempo}", dst], check=True)
+    # «естественный» режим: ударения ставит модель, паузы — тишина между частями фразы, темп и тон — через ffmpeg
+    import re
+    parts = [p for p in re.split(r"(?<=[.:!?])\s+|\s+—\s+", text) if p.strip()]
+    seps = re.findall(r"(?<=[.:!?])\s+|\s+—\s+", text)
+    out = []
+    for k, p in enumerate(parts):
+        out.append(model.apply_tts(text=p, speaker=spk, sample_rate=SR, put_accent=True, put_yo=True).numpy())
+        if k < len(seps): out.append(np.zeros(int(SR * (sx.get("dash", 260) if "—" in seps[k] else sx.get("dot", 380)) / 1000)))
+    a = np.concatenate(out); pf, tempo = sx.get("pitch", 1.0), sx.get("tempo", 1.0)
+    if pf != 1.0 or tempo != 1.0:                                       # ниже тон (asetrate) и медленнее (atempo) без искажений
+        src, dst = f"{WORK}/_t_in.wav", f"{WORK}/_t_out.wav"; wavfile.write(src, SR, (a / max(np.abs(a).max(), 1e-6) * 0.95 * 32767).astype(np.int16))
+        subprocess.run(["ffmpeg", "-nostdin", "-loglevel", "error", "-y", "-i", src, "-af", f"asetrate={int(SR * pf)},aresample={SR},atempo={tempo / pf:.4f}", dst], check=True)
         a = wavfile.read(dst)[1].astype(np.float32) / 32767
     return a
 LEAD0 = getattr(cfg, "LEAD0", LEAD)      # первая фраза может звучать сразу — хук в первую секунду
