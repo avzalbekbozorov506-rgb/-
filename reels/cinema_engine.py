@@ -12,6 +12,7 @@ SILERO = os.environ.get("SILERO_MODEL", "v5_ru.pt")
 WORK = os.path.join(HERE, "work", os.path.splitext(os.path.basename(OUT))[0]); os.makedirs(WORK, exist_ok=True)
 W, H, FPS = 1080, 1920, 30
 GOLD, WHITE, GREY = (214, 178, 112), (246, 240, 228), (150, 140, 128)
+GOLD_HI = (240, 200, 120)
 def serif(style, size): return ImageFont.truetype(f"{HERE}/fonts/CormorantGaramond-{style}.ttf", size)
 def sans(style, size): return ImageFont.truetype(f"/usr/share/fonts/opentype/inter/Inter-{style}.otf", size)
 def ease(x): x = min(max(x, 0), 1); return x * x * (3 - 2 * x)
@@ -138,15 +139,23 @@ def text_layer(i, lt, D):
                 if len(line) + len(w_) + 1 > getattr(cfg, "SUB_CHARS", 26) and line: lines.append(line); line = w_
                 else: line = (line + " " + w_).strip()
             lines.append(line)
-            size = getattr(cfg, "QUOTE_SIZE", 72); fq = serif("MediumItalic", size)
-            while size > 50 and max(d.textlength(l, font=fq) for l in lines) > 960: size -= 2; fq = serif("MediumItalic", size)
+            size = getattr(cfg, "QUOTE_SIZE", 72); fq = serif(getattr(cfg, "SUB_FONT", "MediumItalic"), size)
+            while size > 50 and max(d.textlength(l, font=fq) for l in lines) > 960: size -= 2; fq = serif(getattr(cfg, "SUB_FONT", "MediumItalic"), size)
             total = sum(len(w_) + 1 for w_ in words); prog = (lt - st) / max(en - st, 0.1) * total; done = 0
             y0 = 1215 + TDY + int((1 - fin) * 14)
+            kara = getattr(cfg, "SUB_STYLE", "") == "karaoke"
+            if kara:                                                        # мягкая тёмная подложка под субтитрами
+                bw = max(d.textlength(l, font=fq) for l in lines) + 90; bh = len(lines) * int(size * 1.18) + 40
+                pad = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(pad).rounded_rectangle((W / 2 - bw / 2, y0 - size * 0.62 - 10, W / 2 + bw / 2, y0 - size * 0.62 + bh), 36, fill=(8, 6, 6, int(130 * fin)))
+                lay.alpha_composite(pad.filter(ImageFilter.GaussianBlur(18))); d = ImageDraw.Draw(lay)
             for k, l in enumerate(lines):                                   # слова подсвечиваются по мере произнесения
                 ws = l.split(); lw = d.textlength(l, font=fq); x = W // 2 - lw / 2; y = y0 + k * int(size * 1.18)
                 for w_ in ws:
-                    spoken = done + len(w_) * 0.5 <= prog; done += len(w_) + 1
+                    a0 = done; spoken = done + len(w_) * 0.5 <= prog; done += len(w_) + 1
                     col = WHITE if spoken else (205, 196, 182); al = int(255 * fin) if spoken else int(150 * fin)
+                    if kara and a0 <= prog < done:                          # текущее слово — золотом
+                        col, al = GOLD_HI, int(255 * fin)
+                    if kara and not spoken and col != GOLD_HI: al = int(95 * fin)
                     d.text((x + 2, y + 3), w_, font=fq, fill=(0, 0, 0, int(110 * fin)), anchor="lm"); d.text((x, y), w_, font=fq, fill=col + (al,), anchor="lm")
                     x += d.textlength(w_ + " ", font=fq)
     else:
@@ -163,6 +172,23 @@ def text_layer(i, lt, D):
     cr = ease((lt - 1.0) / 0.8) * out; d.text((W // 2, 1640 + min(TDY, 150)), credit, font=F_CR, fill=GREY + (int(200 * cr),), anchor="mm")
     return lay
 
+def hook_layer(lt):
+    """Хук: крупная надпись в первые секунды — появляется с «ударом» и лёгкой тряской."""
+    txt, t1 = cfg.HOOK; a = ease(lt / 0.18) * ease((t1 - lt) / 0.35)
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    if a <= 0: return lay
+    d = ImageDraw.Draw(lay); f = sans("Black", getattr(cfg, "HOOK_SIZE", 88)); y = getattr(cfg, "HOOK_Y", 360)
+    x0, y0, x1, y1 = d.multiline_textbbox((W // 2, y), txt, font=f, anchor="ma", align="center", spacing=16)
+    d.rounded_rectangle((x0 - 44, y0 - 34, x1 + 44, y1 + 44), 30, fill=(150, 24, 30, int(236 * a)))
+    d.rounded_rectangle((x0 - 44, y0 - 34, x1 + 44, y1 + 44), 30, outline=GOLD + (int(200 * a),), width=3)
+    d.multiline_text((W // 2, y), txt, font=f, fill=(255, 250, 240, int(255 * a)), anchor="ma", align="center", spacing=16)
+    s = 1.0 + 0.25 * (1 - ease(lt / 0.22)); rot = 2.2 * math.sin(lt * 38) * max(0, 1 - lt / 0.8)
+    if s != 1.0 or rot:
+        lay = lay.rotate(rot, center=(W // 2, y + 100), resample=Image.BICUBIC)
+        big = lay.resize((int(W * s), int(H * s)), Image.BICUBIC); cx, cy = W / 2, y + 100
+        lay = big.crop((int(cx * s - cx), int(cy * s - cy), int(cx * s - cx) + W, int(cy * s - cy) + H))
+    return lay
+
 def scene_frame(i, lt):
     D = DURS[i]; src = SCENES[i][3]
     if callable(src):                                                    # анимированная сцена: сглаживание краёв + медленный наезд камеры
@@ -173,6 +199,7 @@ def scene_frame(i, lt):
         z0, z1, (fx0, fy0), (fx1, fy1) = SCENES[i][5]; u = ease(lt / D) * 0.85 + (lt / D) * 0.15
         im = camera(plate(src), z0 + (z1 - z0) * u, fx0 + (fx1 - fx0) * u, fy0 + (fy1 - fy0) * u).convert("RGBA")
     im.alpha_composite(OVER); im.alpha_composite(HEAD, (0, 0)); im.alpha_composite(text_layer(i, lt, D))
+    if i == 0 and hasattr(cfg, "HOOK"): im.alpha_composite(hook_layer(lt))
     return im.convert("RGB")
 
 def frame(t, n):

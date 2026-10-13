@@ -44,6 +44,7 @@ ma = cfg("marcus_aurelius"); covers.append(make(cover_crop(ma.dark_studio(Image.
 st = cfg("sun_tzu"); covers.append(make(st.s_intro(3.0, 9.0), "СУНЬ-ЦЗЫ", "«Искусство войны»", "5 ПРИНЦИПОВ", "05_sun_tszy"))
 tl = cfg("tolstoy_land"); covers.append(make(tl.s_fall(5.5, 7.1), "ТОЛСТОЙ", "«Много ли человеку земли нужно»", "ИСТОРИЯ", "06_tolstoy"))
 dp = cfg("dopamine_scale"); covers.append(make(dp.s_gremlins(6.6, 8.0), "ВЕСЫ", "Притча о дофамине", "ПРИТЧА", "07_vesy"))
+covers.append(make(cover_crop(Image.open(f"{HERE}/art/fiorentino_1521.jpg"), 0.5, 0.3, 1.3), "МАКИАВЕЛЛИ", "5 правил, о которых молчат", "ЧАСТЬ 2", "08_makiavelli_2"))
 # превью сетки профиля: 3 колонки, кадр 3:4 по центру
 covers = covers[::-1]                                                     # как в профиле: новое — первым
 rows = (len(covers) + 2) // 3; grid = Image.new("RGB", (3 * 360 + 8, rows * 484 - 4), (255, 255, 255))
