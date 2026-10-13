@@ -14,3 +14,9 @@ make_click(crop("met_41185", 0.5, 0.62, 2600), "ЛУЧШАЯ ПОБЕДА —\n�
 make_click(crop("met_437510", 0.5, 0.36, 2700), "ЭТО СКАЗАЛ\nМАКИАВЕЛЛИ?", "МИФ", "ЦЕЛЬ И СРЕДСТВА", "миф или правда", "19_myth_goal_click", y=1060)
 make_click(crop("met_459131", 0.32, 0.45, 2400), "ДРУГ ТЕБЯ\nПРЕДАЛ", "ВОПРОС ДНЯ", "ЧТО СДЕЛАЕШЬ?", "ответь цифрой", "20_q_betrayal_click", y=1060)
 print("ok")
+# вне плана: «Его тоже бесили люди» (бюст на тёмном фоне — та же обработка, что в ролике)
+import importlib.util
+sp = importlib.util.spec_from_file_location("mp", f"{HERE}/configs/marcus_people.py"); mp = importlib.util.module_from_spec(sp); sp.loader.exec_module(mp)
+bust = mp.dark_studio(Image.open(f"{HERE}/art/ma_bronze.jpg").convert("RGB")); bust.save("/tmp/_bust.jpg")
+im = Image.open("/tmp/_bust.jpg"); w = int(im.height * 9 / 16 * 0.8); h = int(w * 16 / 9); x0 = (im.width - w) // 2
+make_click(im.crop((x0, 0, x0 + w, h)).resize((1080, 1920), Image.LANCZOS), "ЕГО ТОЖЕ\nБЕСИЛИ ЛЮДИ", "КНИГА II", "МАРК АВРЕЛИЙ", "император о людях", "21_marcus_people_click", y=1060)
