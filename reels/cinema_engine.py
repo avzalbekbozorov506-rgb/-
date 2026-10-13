@@ -34,7 +34,10 @@ for i, sc in enumerate(SCENES):
             a = tts(ph, spk); voice.append((t0 + cur, a)); parts.append((cur, cur + len(a) / SR, clean(ph))); cur += len(a) / SR + 0.22
         PHRASES[i] = parts; dur = cur - 0.22 + TAIL
     else:
-        a = tts(sc[0], spk0); voice.append((t0 + LEAD, a)); dur = LEAD + len(a) / SR + TAIL
+        cur = LEAD
+        for ph in [p.strip() for p in sc[0].split("|") if p.strip()]:
+            a = tts(ph, spk0); voice.append((t0 + cur, a)); cur += len(a) / SR + 0.22
+        dur = cur - 0.22 + TAIL
     STARTS.append(t0); DURS.append(dur); t0 += dur
 DUR = t0
 track = np.zeros(int(DUR * SR) + SR)
