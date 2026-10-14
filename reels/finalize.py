@@ -7,7 +7,7 @@ def loud(f):
     e = run("-i", f, "-af", "ebur128=peak=true", "-f", "null", "-").stderr
     return float(re.findall(r"I:\s+(-?[\d.]+) LUFS", e)[-1]), float(re.findall(r"Peak:\s+(-?[\d.]+) dBFS", e)[-1])
 src = f"{W}/_src.mp4"
-if not os.path.exists(src): os.replace(f"{N}.mp4", src)                 # исходник рендера сохраняем, чтобы можно было перезапустить
+if not os.path.exists(src) or os.path.getmtime(f"{N}.mp4") > os.path.getmtime(src): os.replace(f"{N}.mp4", src)   # свежий рендер всегда становится исходником                 # исходник рендера сохраняем, чтобы можно было перезапустить
 i0, _ = loud(src); g = -14.0 - i0                                       # усиление к −14 LUFS, пики режет лимитер (−2 dB), 3 подхода
 for _ in range(4):
     run("-y", "-i", src, "-af", f"aresample=192000,volume={g:.2f}dB,alimiter=limit=0.79:attack=2:release=60:level=false:asc=1,aresample=48000",

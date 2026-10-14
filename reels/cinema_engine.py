@@ -130,6 +130,11 @@ for i in range(int(DUR / bar) + 1):
             if a0 < N: sg = tt[a0:a1] - tt[a0]; mus[a0:a1] += 0.25 * np.exp(-sg * 6) * np.sin(2 * np.pi * (55 + 40 * np.exp(-sg * 20)) * sg)
 mus *= np.minimum(np.minimum(tt / 3, 1), np.clip((DUR - tt) / 3, 0, 1))
 wavfile.write(f"{WORK}/music.wav", SR, (mus / np.abs(mus).max() * 0.8 * 32767).astype(np.int16))
+MUSIC = getattr(cfg, "MUSIC", None)         # MUSIC = ("music/файл.mp3", старт_сек): настоящая запись вместо синтеза (public domain, fetch_music.sh)
+if MUSIC:
+    mfx = "highpass=f=50,equalizer=f=300:t=q:w=0.8:g=-3,equalizer=f=1500:t=q:w=0.9:g=-6,equalizer=f=3500:t=q:w=1:g=-4,lowpass=f=9000,loudnorm=I=-30:TP=-3"
+    subprocess.run(["ffmpeg", "-nostdin", "-loglevel", "error", "-y", "-ss", str(MUSIC[1]), "-i", f"{HERE}/{MUSIC[0]}", "-t", f"{DUR + 1:.2f}",
+                    "-af", f"{mfx},afade=t=in:d=2,afade=t=out:st={max(DUR - 3, 0):.2f}:d=3", "-ar", str(SR), f"{WORK}/music.wav"], check=True)
 
 # ---------- картинки ----------
 def grade(im):
@@ -364,8 +369,8 @@ if __name__ == "__main__":
     for n in range(int(DUR * FPS)): p.stdin.write(frame(n / FPS, n).tobytes())
     p.stdin.close(); p.wait()
     vfx = getattr(cfg, "VOICE_FX", "highpass=f=80,equalizer=f=3500:t=q:w=1.5:g=1.5,deesser=i=0.2")   # обработка голоса (VOICE_FX — «студийная»)
-    fc = (f"[1:a]{vfx},asplit[v][vk];"
-          "[2:a]volume=0.14[m];[m][vk]sidechaincompress=threshold=0.03:ratio=4:attack=30:release=600[md];"
+    fc = (f"[1:a]{vfx},asplit[v][vk];" +
+          (f"[2:a]volume=1[m];[m][vk]sidechaincompress=threshold=0.02:ratio=5:attack=40:release=700[md];" if MUSIC else "[2:a]volume=0.14[m];[m][vk]sidechaincompress=threshold=0.03:ratio=4:attack=30:release=600[md];") +
           "[v][md]amix=inputs=2:normalize=0,loudnorm=I=-14:TP=-1.5[a]")
     subprocess.run(["ffmpeg", "-nostdin", "-loglevel", "error", "-y", "-i", f"{WORK}/video.mp4", "-i", f"{WORK}/voice.wav", "-i", f"{WORK}/music.wav",
                     "-filter_complex", fc, "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-t", f"{DUR:.2f}", "-movflags", "+faststart", OUT], check=True)
