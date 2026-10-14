@@ -22,3 +22,7 @@ im = Image.open("/tmp/_bust.jpg"); w = int(im.height * 9 / 16 * 0.8); h = int(w 
 make_click(im.crop((x0, 0, x0 + w, h)).resize((1080, 1920), Image.LANCZOS), "ЕГО ТОЖЕ\nБЕСИЛИ ЛЮДИ", "КНИГА II", "МАРК АВРЕЛИЙ", "император о людях", "21_marcus_people_click", y=1060)
 # вне плана: Пётр I — зубодёр
 make_click(crop("wm_nattier_peter", 0.5, 0.33, 2400), "ЦАРЬ ВЫРЫВАЛ\nЗУБЫ ПОДДАННЫМ", "ФАКТ", "ПЁТР ПЕРВЫЙ", "зубы в Кунсткамере", "22_peter_teeth_click", y=1060)
+# вне плана: почему Пётр бросил Москву
+make_click(crop("wm_nattier_peter", 0.5, 0.33, 2400), "ПОЧЕМУ ПЁТР\nБРОСИЛ МОСКВУ", "1682", "ПЁТР ПЕРВЫЙ", "история одного решения", "23_peter_moscow_click", y=1060)
+# вне плана: Пётр под Полтавой
+make_click(crop("wm_nattier_peter", 0.5, 0.33, 2400), "ПУЛИ ЕГО\nНЕ ОСТАНОВИЛИ", "1709", "ПЁТР ПЕРВЫЙ", "Полтавская битва", "24_peter_poltava_click", y=1060)
