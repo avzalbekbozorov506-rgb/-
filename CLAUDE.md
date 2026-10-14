@@ -118,6 +118,11 @@ Vosk диктор 4 + студийная обработка: в конфиге `
 2 пользователь публикует вручную (≈13:30 и 18:00); интервал между публикациями ≥ 3 ч. Публиковать/ставить в расписание только с явного «да» пользователя на конкретный ролик и время.
 Видео в Metricool передаются публичной ссылкой (репозиторий открытый: `https://raw.githubusercontent.com/avzalbekbozorov506-rgb/-/claude/claude-md-setup-sh-pozvh4/reels/<файл>.mp4`), обложка — `reels/covers/*.jpg` (jpg по ссылке). Отметка «создано ИИ» (isAiGenerated) — рекомендована, голос синтетический.
 
+## День 2 (16.10) — готов
+`mach_friends` поставлен в Metricool на 16.10 10:00 МСК (id 396056923, REEL, isAiGenerated, обложка `covers/27_mach_friends_click.jpg`, описание из `work/mach_friends/caption.txt`).
+Пользователь публикует сам: 13:30 `mach_fear`, 18:00 `suntzu_drill` (HQ в `hq/`, обложки 28, 29, описания в `work/<имя>/caption.txt`). Вне плана выложен 14.10 `odyssey_sirens`.
+Пост в Metricool всегда ставить с описанием (просьба пользователя «с описаниями выкладывай»). Raw-ссылки — с ветки `claude/metricool-setup-schedule-vihtrr`.
+
 ## Первая публикация через Metricool (14.10.2026)
 Поставлен в расписание `suntzu_rules` («5 правил Сунь-цзы») на 15.10 10:00 МСК (id 395668949, REEL, isAiGenerated=true, обложка `covers/17_suntzu_rules_click.jpg`).
 Метод проверен: `createScheduledPost` принимает публичные raw-ссылки GitHub (видео `reels/<имя>.mp4`, обложка jpg); Metricool копирует медиа к себе. blogId=7402893, часовой пояс Europe/Moscow.
