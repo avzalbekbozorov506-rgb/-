@@ -8,3 +8,4 @@ voices/*.onnx
 voices/*.onnx.json
 hq/
 music/*.mp3
+ffmpeg2pass-*
