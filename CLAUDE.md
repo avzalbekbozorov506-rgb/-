@@ -77,7 +77,7 @@
 - Лучшее время по Metricool: 10:00, затем 17:00–18:00; выходные слабее. Подробно — `reels/LESSONS.md`.
 
 ## Коннекторы
-- Работают: Metricool, vidIQ (Instagram добавлен вручную — только публичные данные; поиск «выстрелов» `vidiq_instagram_tiktok_outlier_search`, 5 кредитов из 150 в месяц), Canva, Google Drive.
+- Работают: Metricool, vidIQ (Instagram подключён через вход 14.10: id 28751789181145457, закрытая статистика есть — `vidiq_instagram_owner_insights`; публикации нет — не выдано право instagram_business_content_publish, нужно переподключить с ним; публикация через vidIQ бесплатна, но только «сейчас», без своей обложки; поиск «выстрелов» `vidiq_instagram_tiktok_outlier_search`, 5 кредитов из 150 в месяц), Canva, Google Drive.
 - «Gemini» в списке коннекторов — криптобиржа, не нейросеть. Nano Banana — только через ключ `GEMINI_API_KEY` в настройках среды (пользователь пока не добавил).
 - Токены и ключи в чат не просить.
 
