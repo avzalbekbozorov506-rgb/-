@@ -20,3 +20,5 @@ sp = importlib.util.spec_from_file_location("mp", f"{HERE}/configs/marcus_people
 bust = mp.dark_studio(Image.open(f"{HERE}/art/ma_bronze.jpg").convert("RGB")); bust.save("/tmp/_bust.jpg")
 im = Image.open("/tmp/_bust.jpg"); w = int(im.height * 9 / 16 * 0.8); h = int(w * 16 / 9); x0 = (im.width - w) // 2
 make_click(im.crop((x0, 0, x0 + w, h)).resize((1080, 1920), Image.LANCZOS), "ЕГО ТОЖЕ\nБЕСИЛИ ЛЮДИ", "КНИГА II", "МАРК АВРЕЛИЙ", "император о людях", "21_marcus_people_click", y=1060)
+# вне плана: Пётр I — зубодёр
+make_click(crop("wm_nattier_peter", 0.5, 0.33, 2400), "ЦАРЬ ВЫРЫВАЛ\nЗУБЫ ПОДДАННЫМ", "ФАКТ", "ПЁТР ПЕРВЫЙ", "зубы в Кунсткамере", "22_peter_teeth_click", y=1060)
