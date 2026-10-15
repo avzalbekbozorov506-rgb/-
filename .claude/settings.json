@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__ShapelessAI_Instagram__fetch_asset"
+    ]
+  }
+}
