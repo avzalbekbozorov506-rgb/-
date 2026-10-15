@@ -1,0 +1,11 @@
+music.wav
+voice/
+machiavelli/
+__pycache__/
+work/
+v5_ru.pt
+voices/*.onnx
+voices/*.onnx.json
+hq/
+music/*.mp3
+ffmpeg2pass-*
