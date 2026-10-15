@@ -263,13 +263,15 @@ def text_layer(i, lt, D):
             if st - 0.08 <= lt < max(en + 0.35, nxt - 0.02) or (k == len(parts) - 1 and lt >= st): cur = (st, en, ph)
         if cur:
             st, en, ph = cur; fin = ease((lt - st + 0.08) / 0.18) * out
-            words = ph.split(); lines, line = [], ""
+            SANS = getattr(cfg, "SUB_SANS", None)                          # SUB_SANS = "ExtraBold" — гротеск заглавными (эксперимент)
+            words = (ph.upper() if SANS else ph).split(); lines, line = [], ""
             for w_ in words:
                 if len(line) + len(w_) + 1 > getattr(cfg, "SUB_CHARS", 26) and line: lines.append(line); line = w_
                 else: line = (line + " " + w_).strip()
             lines.append(line)
-            size = getattr(cfg, "QUOTE_SIZE", 72); fq = serif(getattr(cfg, "SUB_FONT", "MediumItalic"), size)
-            while size > 50 and max(d.textlength(l, font=fq) for l in lines) > 960: size -= 2; fq = serif(getattr(cfg, "SUB_FONT", "MediumItalic"), size)
+            mk = (lambda z: sans(SANS, z)) if SANS else (lambda z: serif(getattr(cfg, "SUB_FONT", "MediumItalic"), z))
+            size = getattr(cfg, "QUOTE_SIZE", 72); fq = mk(size)
+            while size > 40 and max(d.textlength(l, font=fq) for l in lines) > 960: size -= 2; fq = mk(size)
             total = sum(len(w_) + 1 for w_ in words); prog = (lt - st) / max(en - st, 0.1) * total; done = 0
             y0 = 1215 + TDY + int((1 - fin) * 14)
             kara = getattr(cfg, "SUB_STYLE", "") == "karaoke"
