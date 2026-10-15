@@ -59,8 +59,9 @@
   Видео и обложки через коннектор не загружаются.
 
 ## Metricool (бренд `mysli.vekov`, blogId 7402893, Europe/Moscow, тариф Free — 20 постов в месяц)
-- `createScheduledPost`: видео и обложка — raw-ссылки GitHub с ветки
-  `https://raw.githubusercontent.com/avzalbekbozorov506-rgb/-/claude/metricool-setup-schedule-vihtrr/reels/<имя>.mp4` (файлы сначала закоммитить и отправить),
+- `createScheduledPost`: видео и обложка — raw-ссылки GitHub: скопировать `hq/<имя>_hq.mp4` в `reels/publish/`, закоммитить и отправить,
+  ссылка `https://raw.githubusercontent.com/avzalbekbozorov506-rgb/-/<ветка>/reels/publish/<имя>_hq.mp4`. Metricool копирует файл к себе —
+  после постановки удалить видео из `reels/publish/` (видео в ветке не хранить: `*.mp4` в .gitignore, иначе новая сессия качает гигабайты),
   `instagramData = {type: REEL, showReelOnFeed: true, isAiGenerated: true}`, `videoThumbnailUrl` — обложка, `text` — описание.
 - Статистика: `getAnalyticsDataByMetrics` (ролики — IGRE*, аккаунт — IGEV*). Разбор каждое воскресенье, выводы — в `reels/LESSONS.md`.
 - Данные есть только с 13.10.2026; удалённые раньше ролики проанализировать нельзя.
@@ -69,7 +70,7 @@
 - 15.10: 10:00 `suntzu_rules` (Metricool, id 395668949), 13:30 `myth_goal`, 18:00 `suntzu_thought` — пользователь сам.
 - 16.10: 10:00 `mach_friends` (Metricool, id 396056923), 13:30 `mach_fear`, 18:00 `suntzu_drill` — пользователь сам.
 - 17.10 (план 3.0, день 1) — все три через Metricool: 10:00 `mach_flatter` (id 396402559), 13:30 `myth_napoleon` (id 396402622), 18:00 `borgia2` (id 396402668).
-  Видео — `hq/*_hq.mp4`, добавлены в git принудительно (`git add -f`), ссылки raw с ветки `claude/account-analysis-vqfese`.
+  Видео уже скопированы в Metricool; из ветки все .mp4 убраны 15.10 (остались в истории git, коммит до «Видео убраны из ветки»).
 - 14.10 вне плана выложен `odyssey_sirens`; в 20:55 через Metricool — `plutarch_shadow` (id 396123548).
 - Готов вне плана `eros_thanatos` («Эрос и Танатос», тема ролика @prosvet.app на 2,2 млн, обложка-«понятие» `covers/31_eros_thanatos.jpg` из `make_cover_term.py`) — пользователь выкладывает сам. Сравнить по статистике спокойную обложку с красной плашкой.
 - Геолокацию Metricool не ставит (нет поля) — пользователь добавляет вручную в Instagram (Москва).
