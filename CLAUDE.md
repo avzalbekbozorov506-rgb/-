@@ -5,7 +5,7 @@
 
 ## Начало сессии
 1. `bash reels/setup.sh` — пакеты Python, vosk-tts, Whisper, музыка в `reels/music/`.
-2. Все команды — из папки `reels/`. Свежая работа (план 3.0, ролики 17.10) — в ветке `claude/account-analysis-vqfese`; старая ветка — `claude/metricool-setup-schedule-vihtrr`.
+2. Все команды — из папки `reels/`. Основная ветка — `reels` (без старых видео); полная история — `claude/account-analysis-vqfese`, ещё старее — `claude/metricool-setup-schedule-vihtrr`.
 
 ## Цель и ритм (решения пользователя 14.10.2026)
 - Цель — рост подписчиков. **План 3.0 (с 17.10 по 15.11, одобрен 14.10): 3 ролика в день, у каждого готовый сценарий**:
