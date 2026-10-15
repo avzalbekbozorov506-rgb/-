@@ -14,7 +14,7 @@ TAIL = 0.2
 HEAD = ("КАРЛ ЮНГ", "ЭГО И САМОСТЬ")
 TITLE = ("", "", "")
 HOOK = ("ВАШ МОЗГ —\nЭТО СЕРИАЛ", 2.4)
-HOOK_Y = 1330
+HOOK_Y = 390
 TEXT_DY = 170
 SUB_STYLE = "karaoke"
 SUB_SANS = "ExtraBold"
@@ -23,7 +23,10 @@ QUOTE_SIZE = 62
 BOT_ALPHA = 120
 VIG = 80
 GRAIN = 4.0
-MUSIC = ("music/suk_meditation.mp3", 0)
+MUSIC = ("music/gen_triphop.mp3", 0)
+XF = 0.0
+FADE_IN = 0.1
+CUT_LEN = 1.1
 PROG = [[50, 57, 62, 65], [46, 53, 58, 62], [48, 55, 60, 63], [45, 52, 57, 61]]
 # центр кадра: (имя, фокус x, фокус y) → триптих 1620×2880: текстура / картина / текстура
 FOCUS = {"aic_encyc_anatomy": (0.5, 0.55), "aic_munch_omega_eyes": (0.5, 0.42), "aic_daumier_collector": (0.6, 0.45),
@@ -56,7 +59,7 @@ C = {"aic_encyc_anatomy": "Энциклопедия Дидро. Анатомия
      "aic_redon_shadow": "Одилон Редон. Профиль тени, около 1895", "aic_eye_horus": "Египет. Амулет «Око Гора», эпоха Птолемеев",
      "aic_etruscan_mirror": "Этрусское ручное зеркало, 470–450 до н. э.", "aic_double_portrait": "Британский художник. Двойной портрет, около 1845",
      "aic_goya_maragato": "Франсиско Гойя. Монах Педро стреляет в Марагато, около 1806", "aic_munch_window": "Эдвард Мунк. Девушка у окна, 1893"}
-def S(text, img, tag=""): return (text, "SUB", tag, img, C[img], Z)
+def S(text, img, tag=""): return (text, "SUB", tag, img, "", Z)
 SCENES = [
     S("Представьте: ваш мозг — это сериал.", "aic_encyc_anatomy"),
     S("В главной роли — Эго.", "aic_munch_omega_eyes"),
@@ -75,6 +78,13 @@ SCENES = [
     S("Эго учит выживать и подстраиваться.", "aic_turner_boats"),
     S("А Самость даёт то, чего не купишь лайками: | смысл и свободу.", "aic_tangyin_tea"),
     S("Юнг называл этот путь индивидуацией — | стать тем, кто ты есть.", "aic_redon_shadow"),
-    ("Подпишись.", "SUB", SUB_PLATE, "aic_eye_horus", C["aic_eye_horus"], Z),
+    ("Подпишись.", "SUB", SUB_PLATE, "aic_eye_horus", "", Z),
 ]
-PREP = {s[3]: _tri(s[3]) for s in SCENES}
+X = lambda *ids: ["aicx_%d" % i for i in ids]
+CUTS = {0: X(862, 24684, 11, 94840), 1: X(42600, 80336), 2: X(4428, 29277, 885, 24684), 3: X(20684, 28849, 94398),
+        4: X(81531, 66042, 100829), 5: X(131501, 883, 20601), 6: X(11, 94840, 862, 4428, 29277), 7: X(196282, 20601, 83583),
+        8: X(42600, 80336, 64754), 9: X(77333, 57191, 68041, 28146), 10: X(8047, 9021, 87479), 11: X(14586, 43259, 64754),
+        12: X(94841, 69533, 100829), 13: X(873, 120172, 66042), 14: X(83583, 77333, 196282), 15: X(68041, 57191, 14586, 94841),
+        16: X(43259, 28146, 69533)}
+for _i in (862, 24684, 11, 94840, 4428, 42600, 120172, 873, 81531, 94841): FOCUS["aicx_%d" % _i] = (0.5, 0.3)
+PREP = {n: _tri(n) for n in {s[3] for s in SCENES} | {x for v in CUTS.values() for x in v}}
