@@ -59,6 +59,19 @@
 - Google Drive: папка «Мысли веков · ролики» (id `1DNZ_0mxDd15VWwfk_MtuPTk_SL8UmOXK`) — документ «<дата> — описания» с тремя описаниями и временем.
   Видео и обложки через коннектор не загружаются.
 
+## Публикация — основной способ: ShapelessAI + GitHub Pages (решение пользователя 15.10.2026, бесплатно, без участия пользователя)
+- ShapelessAI (connectionId `8123be60-8569-4632-afb4-a37fe7d89dca`, @mysli.vekov, до 10 постов в день бесплатно) берёт видео только по публичной ссылке с типом video/*.
+  Raw GitHub (octet-stream), jsDelivr (лимит 20 МБ) и сторонние файлообменники не подходят — только наш GitHub Pages.
+- Pages включён на ветке `gh-pages` (/ root), сайт `https://avzalbekbozorov506-rgb.github.io/-/`; старый сайт vika-aptek отключён — пользователю не нужен.
+- Обложку ShapelessAI не принимает — она вшита в первые 3 кадра видео (`finalize.py`), Instagram берёт её как обложку. Проверить на первом ролике (`larochefoucauld_grief`).
+- Порядок (после явного «да» на ролик и время):
+  1. `bash reels/publish_pages.sh add <имя>` — кладёт `hq/<имя>_hq.mp4` в gh-pages, ждёт сайт, печатает ссылку.
+  2. `fetch_asset(url, purpose="publish-candidate")` (бюджет по умолчанию, $0) → `mediaKey`.
+  3. `bash reels/publish_pages.sh rm <имя>` — сразу удалить видео из gh-pages.
+  4. `posts_create(connectionId, text=caption.txt, mediaKeys=[mediaKey], scheduledAt="…Z")` — время в UTC (МСК − 3 ч).
+- Разрешение `mcp__ShapelessAI_Instagram__fetch_asset` — в `.claude/settings.json`.
+- Metricool — запасной путь (20 постов в месяц, своя обложка).
+
 ## Metricool (бренд `mysli.vekov`, blogId 7402893, Europe/Moscow, тариф Free — 20 постов в месяц)
 - `createScheduledPost`: видео и обложка — raw-ссылки GitHub: скопировать `hq/<имя>_hq.mp4` в `reels/publish/`, закоммитить и отправить,
   ссылка `https://raw.githubusercontent.com/avzalbekbozorov506-rgb/-/<ветка>/reels/publish/<имя>_hq.mp4`. Metricool копирует файл к себе —
@@ -85,7 +98,7 @@
 - Закрытая статистика: `vidiq_instagram_connected_accounts` → `vidiq_instagram_owner_insights` (0 кредитов): просмотры, пересылки, сохранения, досмотр, свайп в начале.
 - **Следующее — день 2 плана 3.0 (18.10):** «Как не злиться на людей», «Одна фраза» Макиавелли, «Сеян» (годовщина 18.10) — сценарии в `plan30_data.py`.
 - Голос медленнее расчёта: ~2,4 слова/с; концовка — коротко «Подпишись», полные `SUBSCRIBE[...]` добавляют ~10 с. «Чезаре» синтезатор читает «Чезары» — в озвучке «герцог».
-- Новый коннектор ShapelessAI Instagram (подключён к @mysli.vekov, до 10 постов в день, без своей обложки) — публикация через него только по решению пользователя.
+- 15.10 вне плана `larochefoucauld_grief` («Чужую беду терпеть легко», Ларошфуко, максима 19, 18,6 с) — первый ролик через ShapelessAI, 07:00 МСК (пост bd675b70-10f7-4862-8145-9541a86ba141). Проверить, какую обложку взял Instagram.
 - Готовые темы со старым звуком (только пересобрать, если нужны): `marcus_people`, `marcus_thanks`, `peter_teeth` — в план 2.0 не вошли.
 
 ## Аудитория и факты
