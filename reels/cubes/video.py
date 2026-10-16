@@ -92,7 +92,7 @@ def state_key(sc, f, env):
     return (tuple(tk), tuple(bl), br, arm_roman, onf, boy_arm, book)
 def key_to_st(key):
     tk, bl, br, ar, onf, ba, book = key
-    st = dict(talk=dict(zip(WHOS, tk)), blink=dict(zip(WHOS, bl)), bob={}, arm={"roman": ar, "legion": ar, "jellinek": ar, "adman": ar, "onfim": onf, "boy": ba}, book=book)
+    st = dict(talk=dict(zip(WHOS, tk)), blink=dict(zip(WHOS, bl)), bob={}, arm={"roman": ar, "legion": ar, "jellinek": ar, "adman": ar, "worker": ar, "onfim": onf, "boy": ba}, book=book)
     st["bob"] = {w: br * (1 if i % 2 == 0 else -1) + .012 * tk[i] for i, w in enumerate(WHOS)}
     return st
 

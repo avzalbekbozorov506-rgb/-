@@ -5,7 +5,7 @@ from cast import claude, person, car, _place
 import props
 from scenes import (sand, logs, gradient, cl, pe, G, CAM, CAM2, room_static, room_dyn, room_lights, planks, LINE as _LINE)
 
-LINE = dict(_LINE); LINE["jellinek"] = dict(speaker=3, rate=.93, pitch=.92); LINE["adman"] = dict(speaker=2, rate=.96, pitch=.88)
+LINE = dict(_LINE); LINE["jellinek"] = dict(speaker=3, rate=.93, pitch=.92); LINE["adman"] = dict(speaker=2, rate=.96, pitch=.88); LINE["worker"] = dict(speaker=3, rate=.95, pitch=.98)
 
 def stone(p, ax, sgn, col):
     cx, cy = np.floor(p[:, 0] / .5), np.floor(p[:, 1] / .5); out = col * (0.92 + .12 * ((np.sin(cx * 12.9 + cy * 78.2) * 43758.5) % 1))[:, None]
