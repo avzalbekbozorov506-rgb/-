@@ -14,7 +14,7 @@ ONLY = sys.argv[2].split(",") if len(sys.argv) > 2 else None
 TMP = "/tmp/claude-0/c1000" if MODNAME == "scenes" else f"/tmp/claude-0/{MODNAME}"; os.makedirs(TMP, exist_ok=True)
 W, H, FPS, SR = 1080, 1920, 24, 48000
 PLATE = getattr(S, "PLATE", "Я ПРОСТО СПРОСИЛ,\nЧТО БЫЛО БЫ 1000 ЛЕТ НАЗАД")
-GAP, LEAD, TAIL = .36, .30, .55
+GAP, LEAD, TAIL = getattr(S, "GAP", .36), getattr(S, "LEAD", .30), getattr(S, "TAIL", .55)
 MUSIC = (f"{HERE}/../music/goldberg_aria.mp3", 2.0)
 
 # ---------- озвучка ----------
@@ -142,9 +142,12 @@ def plate_layer(tag):
         ov.alpha_composite(chip, ((W - cw) // 2, 205 + bh + 48))
     return ov
 _SUBS = {}
-def sub_layer(text, cta=False):
-    k = (text, cta)
+def sub_layer(text, cta=False, who=None):
+    k = (text, cta, who)
     if k in _SUBS: return _SUBS[k]
+    if getattr(S, "SUB_STYLE", "") == "serif":
+        from subs_soft import serif_sub_layer
+        _SUBS[k] = serif_sub_layer(text, S.SUB_COLORS.get(who, (255, 255, 255)), W, H, cta); return _SUBS[k]
     if not os.environ.get("SUBS_OLD"):                                  # мягкие субтитры (по умолчанию); SUBS_OLD=1 — прежние жирные
         from subs_soft import soft_sub_layer
         _SUBS[k] = soft_sub_layer(text, cta, W, H); return _SUBS[k]
@@ -189,7 +192,7 @@ if __name__ == "__main__":
             for j, (who, text, st, d, a) in enumerate(sc["tl"]):
                 for c0, c1, ct in sc["subs"][j]:
                     if c0 - .03 <= t < c1:
-                        fr.alpha_composite(sub_layer(ct, cta=((sc["name"] == "room2" or sc.get("final")) and j == last))); break
+                        fr.alpha_composite(sub_layer(ct, cta=((sc["name"] == "room2" or sc.get("final")) and j == last), who=who)); break
             if hasattr(S, "overlay"): S.overlay(sc, t, fr)
             ff.stdin.write(fr.convert("RGB").tobytes())
     ff.stdin.close(); ff.wait(); print("готово", OUT)

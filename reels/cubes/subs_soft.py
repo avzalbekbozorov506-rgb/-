@@ -23,3 +23,19 @@ def soft_sub_layer(text, cta, W, H):
         fc = _f(40, "Bold"); t = "Подписаться  ·  @mysli.vekov"; tw = d.textlength(t, font=fc)
         d.rounded_rectangle(((W - tw) / 2 - 38, 1700, (W + tw) / 2 + 38, 1782), 41, fill=(255, 226, 150, 245)); d.text(((W - tw) / 2, 1719), t, font=fc, fill=(48, 36, 28, 255))
     return ov
+
+def serif_sub_layer(text, color, W, H, cta=False):
+    """Субтитры как в образце: serif, цвет по герою, мягкая тень, вверху (зона ~26 %)."""
+    ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); fs = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf", 76); d = ImageDraw.Draw(ov); rows, cur = [], ""
+    for w_ in text.split():
+        if d.textlength((cur + " " + w_).strip(), font=fs) > 880: rows.append(cur); cur = w_
+        else: cur = (cur + " " + w_).strip()
+    rows.append(cur); lh = 92; y0 = 440 if len(rows) < 4 else 360
+    sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); sd = ImageDraw.Draw(sh)
+    for i, r in enumerate(rows): sd.text(((W - sd.textlength(r, font=fs)) / 2 + 3, y0 + lh * i + 6), r, font=fs, fill=(0, 0, 0, 200))
+    ov.alpha_composite(sh.filter(ImageFilter.GaussianBlur(6))); d = ImageDraw.Draw(ov)
+    for i, r in enumerate(rows): d.text(((W - d.textlength(r, font=fs)) / 2, y0 + lh * i), r, font=fs, fill=tuple(color) + (255,))
+    if cta:
+        fc = _f(40, "Bold"); t = "Подписаться  ·  @mysli.vekov"; tw = d.textlength(t, font=fc)
+        d.rounded_rectangle(((W - tw) / 2 - 38, 1700, (W + tw) / 2 + 38, 1782), 41, fill=(255, 226, 150, 245)); d.text(((W - tw) / 2, 1719), t, font=fc, fill=(48, 36, 28, 255))
+    return ov
