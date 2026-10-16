@@ -60,13 +60,18 @@ def blink(f, off):                                                       # мо�
     ph = (f / FPS + off) % 3.1
     return max(0.0, 1 - abs(ph - .1) / .1) if ph < .2 else 0.0
 
-SHOT = R.Shot(S.build_static(), S.camera(), amb=(.80, .78, .84), sun_k=.42)
+SHOT = R.Shot(S.build_static(), S.camera(), lights=S.lights(), dof=(3.3, 1.5))
 
-def render_frame(f):
-    sec = f / FPS
-    st = dict(boy_talk=float(ENV["boy"][f]), claude_talk=float(ENV["claude"][f]), boy_blink=blink(f, .0), claude_blink=blink(f, 1.4),
-              boy_bob=.012 * ENV["boy"][f], claude_bob=.012 * ENV["claude"][f])
-    return SHOT.frame(S.build_dyn(st))
+def q(v, lv): return min(lv, key=lambda x: abs(x - v))
+def state(f):
+    t = f / FPS
+    ta = lambda e: q(float(e[f]), (0, .35, .7, 1.0))
+    br = .004 * np.sin(t * 2.6)
+    return (ta(ENV["boy"]), ta(ENV["claude"]), q(blink(f, .0), (0, .5, 1)), q(blink(f, 1.4), (0, .5, 1)), round(br, 3))
+
+def render_state(key):
+    bt, ct, bb, cb, br = key
+    return SHOT.render(S.build_dyn(dict(boy_talk=bt, claude_talk=ct, boy_blink=bb, claude_blink=cb, boy_bob=br + .012 * bt, claude_bob=-br + .012 * ct)))
 
 def font(sz, bold="Black"): return ImageFont.truetype(f"/usr/share/fonts/opentype/inter/Inter-{bold}.otf", sz)
 
@@ -98,12 +103,15 @@ if __name__ == "__main__":
     ff = subprocess.Popen(["ffmpeg", "-nostdin", "-loglevel", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
                            "-i", "/tmp/claude-0/_voice.wav", "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p",
                            "-c:a", "aac", "-b:a", "192k", "-shortest", OUT], stdin=subprocess.PIPE)
+    keys = [state(f) for f in range(NF)]; uniq = sorted(set(keys)); print("уникальных кадров", len(uniq), flush=True)
     with Pool(4) as pool:
-        for f, im in enumerate(pool.imap(render_frame, range(NF), chunksize=2)):
-            z = 1 + .05 * f / NF                                          # мягкий наезд
-            pil = Image.fromarray(im).resize((int(W * z), int(H * z)), Image.BICUBIC)
-            x0, y0 = (pil.width - W) // 2, (pil.height - H) // 2
-            fr = pil.crop((x0, y0, x0 + W, y0 + H)).convert("RGBA"); fr.alpha_composite(overlay(f))
-            ff.stdin.write(fr.convert("RGB").tobytes())
-            if f % 24 == 0: print(f, "/", NF, flush=True)
+        cache = dict(zip(uniq, pool.imap(render_state, uniq, chunksize=1)))
+    print("кадры посчитаны", flush=True)
+    for f in range(NF):
+        im = cache[keys[f]]
+        z = 1 + .04 * f / NF                                          # мягкий наезд
+        pil = Image.fromarray(im).resize((int(W * z), int(H * z)), Image.LANCZOS)
+        x0, y0 = (pil.width - W) // 2, (pil.height - H) // 2
+        fr = pil.crop((x0, y0, x0 + W, y0 + H)).convert("RGBA"); fr.alpha_composite(overlay(f))
+        ff.stdin.write(fr.convert("RGB").tobytes())
     ff.stdin.close(); ff.wait(); print("готово", OUT)

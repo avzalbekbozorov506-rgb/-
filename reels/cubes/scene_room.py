@@ -1,6 +1,6 @@
 """Сцена 1: комната мальчика вечером. build(t, st) -> (boxes, camera)."""
 import numpy as np
-from cuberender import Box, Camera
+from cuberender import Box, Camera, Lights
 from cast import claude, boy
 
 def planks(p, ax, sgn, col):
@@ -55,3 +55,7 @@ def build_dyn(st):
 
 def camera(t=0, T=1):
     return Camera((.55, -1.25, 1.25), (.5, 1.9, .78), fov=60)
+
+def lights():
+    return Lights(sun_dir=(-.45, -.55, .70), sun=(1.0, .88, .72), sky=(.46, .52, .74), ground=(.36, .27, .22),
+                  points=[((1.45, 2.1, 1.25), (1.0, .72, .38), 1.8)])
