@@ -20,6 +20,7 @@ MUSIC = (f"{HERE}/../music/goldberg_aria.mp3", 2.0)
 # ---------- озвучка ----------
 _SYN = None
 def tts_line(who, text):
+    if who == "_t": return np.zeros(int(float(text) * SR), np.float32)          # молчаливая пауза (таймер), text = секунды
     key = hashlib.md5(f"{who}|{text}|{S.LINE[who]}".encode()).hexdigest(); f = f"{TMP}/tts_{key}.wav"
     if os.path.exists(f): return wavfile.read(f)[1].astype(np.float32) / 32768
     global _SYN
@@ -43,8 +44,8 @@ SC = [s for s in S.SCENES if not ONLY or s["name"] in ONLY]
 t0 = 0.0
 for sc in SC:
     cur = LEAD; sc["tl"] = []
-    for who, text in sc["lines"]:
-        a = tts_line(who, text); sc["tl"].append((who, text, cur, len(a) / SR, a)); cur += len(a) / SR + GAP
+    for ln in sc["lines"]:
+        who, text = ln[0], ln[1]; a = tts_line(who, ln[2] if len(ln) > 2 else text); sc["tl"].append((who, text, cur, len(a) / SR, a)); cur += len(a) / SR + GAP
     sc["dur"] = cur - GAP + TAIL; sc["t0"] = t0; sc["nf"] = int(round(sc["dur"] * FPS)); t0 += sc["nf"] / FPS
 DUR = t0; NF_ALL = sum(s["nf"] for s in SC)
 print("длина ролика", round(DUR, 1), "с, кадров", NF_ALL, flush=True)
@@ -164,11 +165,12 @@ if __name__ == "__main__":
             fr = im.crop((x0, y0, x0 + W, y0 + H)).convert("RGBA"); fr.alpha_composite(base)
             t = f / FPS
             for j, (who, text, st, d, a) in enumerate(sc["tl"]):
-                if st - .05 <= t <= st + d + .3:
+                if who != "_t" and st - .05 <= t <= st + d + .3:
                     chunks = [c for c in re.split(r"(?<=[.!?…])\s+", text.replace("+", "")) if c]; tot = sum(len(c) for c in chunks); frac = min(max((t - st) / max(d, .1), 0), .999); acc = 0; pick = chunks[-1]
                     for c in chunks:
                         acc += len(c) / tot
                         if frac < acc: pick = c; break
                     fr.alpha_composite(sub_layer(pick, cta=((sc["name"] == "room2" or sc.get("final")) and j == last)))
+            if hasattr(S, "overlay"): S.overlay(sc, t, fr)
             ff.stdin.write(fr.convert("RGB").tobytes())
     ff.stdin.close(); ff.wait(); print("готово", OUT)
