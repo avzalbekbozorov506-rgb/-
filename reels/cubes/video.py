@@ -46,6 +46,8 @@ for sc in SC:
     cur = LEAD; sc["tl"] = []
     for ln in sc["lines"]:
         who, text = ln[0], ln[1]; a = tts_line(who, ln[2] if len(ln) > 2 else text); sc["tl"].append((who, text, cur, len(a) / SR, a)); cur += len(a) / SR + GAP
+    from subs_sync import sync as _sync
+    sc["subs"] = [[(st + c0, st + c1, ct) for c0, c1, ct in _sync(text.replace("+", ""), a, SR)] if who != "_t" else [] for who, text, st, d, a in sc["tl"]]
     sc["dur"] = cur - GAP + TAIL; sc["t0"] = t0; sc["nf"] = int(round(sc["dur"] * FPS)); t0 += sc["nf"] / FPS
 DUR = t0; NF_ALL = sum(s["nf"] for s in SC)
 print("длина ролика", round(DUR, 1), "с, кадров", NF_ALL, flush=True)
@@ -168,12 +170,9 @@ if __name__ == "__main__":
             fr = im.crop((x0, y0, x0 + W, y0 + H)).convert("RGBA"); fr.alpha_composite(base)
             t = f / FPS
             for j, (who, text, st, d, a) in enumerate(sc["tl"]):
-                if who != "_t" and st - .05 <= t <= st + d + .3:
-                    chunks = [c for c in re.split(r"(?<=[.!?…])\s+", text.replace("+", "")) if c]; tot = sum(len(c) for c in chunks); frac = min(max((t - st) / max(d, .1), 0), .999); acc = 0; pick = chunks[-1]
-                    for c in chunks:
-                        acc += len(c) / tot
-                        if frac < acc: pick = c; break
-                    fr.alpha_composite(sub_layer(pick, cta=((sc["name"] == "room2" or sc.get("final")) and j == last)))
+                for c0, c1, ct in sc["subs"][j]:
+                    if c0 - .03 <= t < c1:
+                        fr.alpha_composite(sub_layer(ct, cta=((sc["name"] == "room2" or sc.get("final")) and j == last))); break
             if hasattr(S, "overlay"): S.overlay(sc, t, fr)
             ff.stdin.write(fr.convert("RGB").tobytes())
     ff.stdin.close(); ff.wait(); print("готово", OUT)
