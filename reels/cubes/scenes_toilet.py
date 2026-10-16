@@ -1,4 +1,4 @@
-"""Ролик «Клод, правда, что в Риме брали налог на туалет?» (сценарий reels/scripts/claude_tax_urine.md).
+"""Ролик «Клод, правда ли, что в Риме брали налог на туалет?» (сценарий reels/scripts/claude_tax_urine.md).
 Запуск: SCENES=scenes_toilet python3 video.py reels/hq/claude_toilet_hq.mp4"""
 import numpy as np
 from cuberender import Box, Camera, Lights
@@ -37,12 +37,12 @@ def _sc(name, tag, static, dyn, cam, lights, lines, final=False, region=(-3, 3.5
     if final: d["final"] = True
     return d
 SCENES = [
-    _sc("t_room1", None, room_static, room_dyn, CAM, room_lights, [("boy", "Клод, правда, что в Риме брали налог на туалет?"), ("claude", "Правда. Хуже: налог на мочу."), ("boy", "На что?!")]),
+    _sc("t_room1", None, room_static, room_dyn, CAM, room_lights, [("boy", "Клод, правда ли, что в Риме брали налог на туалет?"), ("claude", "Правда. Хуже: налог на мочу."), ("boy", "На что?!")]),
     _sc("t_laundry", "РИМ  ·  I век", laundry_static, laundry_dyn, CAMW, pompeii_lights,
         [("claude", "Прачки стирали тоги мочой. Она отбеливает ткань. Император Веспас+иан обложил налогом общественные туалеты, и казна заработала.")]),
     _sc("t_court", "РИМ  ·  70-е годы", court_static, court_dyn, CAMW, pompeii_lights,
-        [("claude", "Сын Тит возмутился: отец, как не стыдно? Веспас+иан поднёс ему монету из первой выручки."), ("roman", "Пахнет?"), ("claude", "Тит сказал: нет."),
-         ("roman", "А она от мочи."), ("claude", "Так появилось выражение «деньги не пахнут».")]),
+        [("claude", "Сын Тит возмутился: отец, как не стыдно? Веспас+иан поднёс ему монету из первой выручки."), ("roman", "Пахнет?"), ("claude", "Тит ответил: нет."),
+         ("roman", "А она ведь из мочи."), ("claude", "Так появилось выражение «деньги не пахнут».")]),
     _sc("t_room2", None, room_static, room_dyn, CAM, room_lights,
         [("boy", "А сегодня что-то осталось?"), ("claude", "Во Франции уличные туалеты до сих пор зовут веспасьенами. В честь императора."),
          ("claude", "Какой самый странный налог знаешь ты? Пиши в комментариях. Отправь тому, кто любит платить налоги. Подпишись.")], final=True),
