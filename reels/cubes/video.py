@@ -107,7 +107,9 @@ def render_state(args):
 def font(sz, w="Black"): return ImageFont.truetype(f"/usr/share/fonts/opentype/inter/Inter-{w}.otf", sz)
 def plate_layer(tag):
     ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(ov)
-    ft = font(58); lines = PLATE.split("\n"); ws = [d.textlength(l, font=ft) for l in lines]
+    lines = PLATE.split("\n"); sz = 58
+    while sz > 36 and max(d.textlength(l, font=font(sz)) for l in lines) > 860: sz -= 2
+    ft = font(sz); ws = [d.textlength(l, font=ft) for l in lines]
     bw, bh = int(max(ws) + 90), 70 * len(lines) + 50
     pl = Image.new("RGBA", (bw, bh), (0, 0, 0, 0)); pd = ImageDraw.Draw(pl)
     pd.rounded_rectangle((0, 0, bw - 1, bh - 1), 28, fill=(18, 18, 20, 235))
@@ -127,7 +129,7 @@ def sub_layer(text, cta=False):
     for w_ in text.split():
         if d.textlength((cur + " " + w_).strip(), font=fs) > 900: rows.append(cur); cur = w_
         else: cur = (cur + " " + w_).strip()
-    rows.append(cur); y = 1500
+    rows.append(cur); y = 1500 - (82 if cta and len(rows) > 2 else 0)
     for r in rows:
         x = (W - d.textlength(r, font=fs)) / 2
         d.text((x, y), r, font=fs, fill=(255, 255, 255, 255), stroke_width=7, stroke_fill=(20, 20, 24, 255)); y += 82
@@ -162,6 +164,11 @@ if __name__ == "__main__":
             fr = im.crop((x0, y0, x0 + W, y0 + H)).convert("RGBA"); fr.alpha_composite(base)
             t = f / FPS
             for j, (who, text, st, d, a) in enumerate(sc["tl"]):
-                if st - .05 <= t <= st + d + .3: fr.alpha_composite(sub_layer(text.replace("+", ""), cta=((sc["name"] == "room2" or sc.get("final")) and j == last)))
+                if st - .05 <= t <= st + d + .3:
+                    chunks = [c for c in re.split(r"(?<=[.!?…])\s+", text.replace("+", "")) if c]; tot = sum(len(c) for c in chunks); frac = min(max((t - st) / max(d, .1), 0), .999); acc = 0; pick = chunks[-1]
+                    for c in chunks:
+                        acc += len(c) / tot
+                        if frac < acc: pick = c; break
+                    fr.alpha_composite(sub_layer(pick, cta=((sc["name"] == "room2" or sc.get("final")) and j == last)))
             ff.stdin.write(fr.convert("RGB").tobytes())
     ff.stdin.close(); ff.wait(); print("готово", OUT)
