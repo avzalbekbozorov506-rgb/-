@@ -8,8 +8,9 @@ import numpy as np, math
 from PIL import Image, ImageFilter
 
 class Box:
-    __slots__ = ("c", "s", "col", "yaw", "decals", "tex", "glow", "shadow", "cs", "sn", "gloss", "rad", "glowk")
-    def __init__(self, c, s, col, yaw=0.0, decals=(), tex=None, glow=False, shadow=True, gloss=0.0, rad=0.03, glowk=1.5):
+    __slots__ = ("c", "s", "col", "yaw", "decals", "tex", "glow", "shadow", "cs", "sn", "gloss", "rad", "glowk", "img")
+    def __init__(self, c, s, col, yaw=0.0, decals=(), tex=None, glow=False, shadow=True, gloss=0.0, rad=0.03, glowk=1.5, img=None):
+        self.img = img
         self.c = np.array(c, np.float32); self.s = np.array(s, np.float32) / 2; self.col = np.array(col, np.float32) / 255
         self.yaw = yaw; self.decals = decals; self.tex = tex; self.glow = glow; self.shadow = shadow
         self.cs, self.sn = math.cos(yaw), math.sin(yaw); self.gloss = gloss; self.rad = min(rad, float(self.s.min()) * .9); self.glowk = glowk
@@ -84,6 +85,12 @@ def _surf(b, p):
         uu = lp[:, 0] / (2 * b.s[0]); vv = lp[:, 2] / (2 * b.s[2])
         mm = front & (uu >= u0) & (uu <= u1) & (vv >= v0) & (vv <= v1)
         if mm.any(): col[mm] = np.array(dc, np.float32) / 255
+    if b.img is not None:                                        # картинка (папирус, береста) на лицевой грани
+        uu = lp[:, 0] / (2 * b.s[0]) + .5; vv = .5 - lp[:, 2] / (2 * b.s[2])
+        m = front & (uu >= 0) & (uu < 1) & (vv >= 0) & (vv < 1)
+        if m.any():
+            ih, iw = b.img.shape[:2]; px = b.img[np.clip((vv[m] * ih).astype(int), 0, ih - 1), np.clip((uu[m] * iw).astype(int), 0, iw - 1)].astype(np.float32) / 255
+            col[m] = col[m] * (1 - px[:, 3:4]) + px[:, :3] * px[:, 3:4]
     return col, nw
 
 class Lights:
