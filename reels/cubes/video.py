@@ -143,10 +143,12 @@ if __name__ == "__main__":
         sc["keys"] = [state_key(sc, f, env) for f in range(sc["nf"])]
         uniq = sorted(set(sc["keys"])); sc["uniq"] = {k: i for i, k in enumerate(uniq)}
         print(sc["name"], "кадров", sc["nf"], "уникальных", len(uniq), flush=True)
-        if all(os.path.exists(f"{TMP}/{sc['name']}_{i}.jpg") for i in range(len(uniq))) and os.environ.get("REUSE"): continue
+        kf = f"{TMP}/{sc['name']}_keys.txt"; sig = repr(uniq)
+        if sc["name"] in os.environ.get("TRUST", "").split(",") and all(os.path.exists(f"{TMP}/{sc['name']}_{i}.jpg") for i in range(len(uniq))): print(sc["name"], "оставлена", flush=True); continue
+        if os.path.exists(kf) and open(kf).read() == sig and all(os.path.exists(f"{TMP}/{sc['name']}_{i}.jpg") for i in range(len(uniq))): print(sc["name"], "без изменений", flush=True); continue
         CUR = sc; SHOT = R.Shot(sc["static"](), sc["camera"](), lights=sc["lights"](), region=sc["region"], dof=sc["dof"])
         with Pool(4) as pool: list(pool.imap(render_state, [(i, k) for k, i in sc["uniq"].items()], chunksize=1))
-        print(sc["name"], "готово", flush=True)
+        open(kf, "w").write(sig); print(sc["name"], "готово", flush=True)
     ff = subprocess.Popen(["ffmpeg", "-nostdin", "-loglevel", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
                            "-i", f"{TMP}/_voice.wav", "-af", "loudnorm=I=-14:TP=-1:LRA=9", "-c:v", "libx264", "-preset", "slow", "-crf", "17", "-pix_fmt", "yuv420p",
                            "-profile:v", "high", "-movflags", "+faststart", "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-shortest", OUT], stdin=subprocess.PIPE)
@@ -159,6 +161,6 @@ if __name__ == "__main__":
             fr = im.crop((x0, y0, x0 + W, y0 + H)).convert("RGBA"); fr.alpha_composite(base)
             t = f / FPS
             for j, (who, text, st, d, a) in enumerate(sc["tl"]):
-                if st - .05 <= t <= st + d + .3: fr.alpha_composite(sub_layer(text, cta=(sc["name"] == "room2" and j == last)))
+                if st - .05 <= t <= st + d + .3: fr.alpha_composite(sub_layer(text.replace("+", ""), cta=(sc["name"] == "room2" and j == last)))
             ff.stdin.write(fr.convert("RGB").tobytes())
     ff.stdin.close(); ff.wait(); print("готово", OUT)
