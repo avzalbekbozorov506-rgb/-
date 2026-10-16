@@ -74,7 +74,7 @@ def bank_dyn_factory(mode, screen_key, boy_on=True, claude_x=.2, boy_pos=(1.25, 
         b = G(st, "bob", "claude")
         B = cl(st, (claude_x, 1.7, 0), 0.0, k=1.0)
         B += [Box((bx + claude_x, by + 1.7, bz), s, c, glow=g, glowk=gk, img=im, gloss=gl) for (bx, by, bz), s, c, g, gk, im, gl in [(x.c, tuple(x.s * 2), tuple(x.col * 255), x.glow, x.glowk, x.img, x.gloss) for x in phone_boxes(mode, screen_key, b)]]
-        if boy_on: B += pe(st, "boy", (boy_pos[0], boy_pos[1], 0), 3.14159 + .35, hat="cap", hatcol=(190, 184, 168))
+        if boy_on: B += pe(st, "boy", (boy_pos[0], boy_pos[1], 0), -.35, hat="cap", hatcol=(190, 184, 168))
         return B
     return dyn
 
