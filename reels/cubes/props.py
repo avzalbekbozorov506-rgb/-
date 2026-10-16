@@ -55,3 +55,48 @@ def payslip():
     for i, t in enumerate(["− еда", "− ячмень", "− сапоги", "− ремни", "− рубаха"]): d.text((60, 190 + i * 54), t, font=F(34), fill=red)
     d.line((40, 470, 380, 470), fill=ink, width=3); d.text((40, 495), "Остаток:  ?", font=F(40), fill=ink)
     return _arr(im)
+
+def _font(sz): return ImageFont.truetype("/usr/share/fonts/opentype/inter/Inter-Black.otf", sz)
+def newspaper():
+    im = Image.new("RGBA", (440, 560), (232, 224, 202, 255)); d = ImageDraw.Draw(im); ink = (40, 34, 30, 255)
+    d.rectangle((8, 8, 431, 551), outline=ink, width=4); d.text((220, 44), "НИЦЦА · 1901", font=_font(30), fill=ink, anchor="mm"); d.line((30, 74, 410, 74), fill=ink, width=3)
+    d.text((220, 150), "МЕРСЕДЕС", font=_font(64), fill=(150, 30, 30, 255), anchor="mm"); d.text((220, 214), "ПОБЕДИЛ В ГОНКАХ", font=_font(30), fill=ink, anchor="mm")
+    d.rectangle((120, 270, 320, 340), fill=(60, 60, 66, 255)); d.rectangle((150, 240, 250, 272), fill=(60, 60, 66, 255))
+    for cx in (155, 285): d.ellipse((cx - 28, 320, cx + 28, 376), fill=(30, 30, 30, 255))
+    rnd = random.Random(3)
+    for r in range(8):
+        d.line((40, 410 + r * 17, 40 + rnd.randint(250, 360), 410 + r * 17), fill=(110, 100, 90, 255), width=5)
+    return _arr(im)
+def docs_merc():
+    im = Image.new("RGBA", (460, 620), (236, 224, 192, 255)); d = ImageDraw.Draw(im); ink = (50, 38, 30, 255); red = (150, 30, 30, 255)
+    d.rectangle((8, 8, 451, 611), outline=(160, 120, 70, 255), width=6)
+    d.text((230, 70), "ТОВАРНЫЙ ЗНАК", font=_font(36), fill=ink, anchor="mm"); d.text((230, 130), "МЕРСЕДЕС", font=_font(58), fill=red, anchor="mm"); d.text((230, 190), "1902 год", font=_font(34), fill=ink, anchor="mm")
+    d.line((50, 250, 410, 250), fill=ink, width=3)
+    d.text((230, 330), "ФАМИЛИЯ", font=_font(36), fill=ink, anchor="mm"); d.text((230, 395), "ЕЛЛИНЕК-", font=_font(52), fill=red, anchor="mm"); d.text((230, 455), "МЕРСЕДЕС", font=_font(52), fill=red, anchor="mm"); d.text((230, 520), "1903 год", font=_font(34), fill=ink, anchor="mm")
+    return _arr(im)
+def sign_bmw():
+    im = Image.new("RGBA", (560, 320), (34, 38, 56, 255)); d = ImageDraw.Draw(im); w = (240, 236, 224, 255)
+    d.rectangle((10, 10, 549, 309), outline=(220, 200, 150, 255), width=6)
+    d.text((280, 90), "BAYERISCHE", font=_font(52), fill=w, anchor="mm"); d.text((280, 160), "MOTOREN WERKE", font=_font(52), fill=w, anchor="mm")
+    d.text((280, 250), "Баварские моторные заводы · 1917", font=_font(26), fill=(220, 200, 150, 255), anchor="mm")
+    return _arr(im)
+def _quarter(d, cx, cy, r, c1, c2):
+    d.pieslice((cx - r, cy - r, cx + r, cy + r), 180, 270, fill=c1); d.pieslice((cx - r, cy - r, cx + r, cy + r), 270, 360, fill=c2)
+    d.pieslice((cx - r, cy - r, cx + r, cy + r), 0, 90, fill=c1); d.pieslice((cx - r, cy - r, cx + r, cy + r), 90, 180, fill=c2)
+    d.ellipse((cx - r, cy - r, cx + r, cy + r), outline=(20, 20, 24, 255), width=10)
+def ad_poster():
+    im = Image.new("RGBA", (560, 400), (240, 226, 190, 255)); d = ImageDraw.Draw(im); ink = (50, 38, 30, 255); BL = (40, 100, 190, 255); WH = (244, 244, 248, 255)
+    d.rectangle((8, 8, 551, 391), outline=ink, width=6); d.text((280, 40), "РЕКЛАМА · 1929", font=_font(30), fill=ink, anchor="mm")
+    d.rectangle((250, 70, 310, 360), fill=(120, 124, 132, 255)); d.rectangle((120, 190, 440, 240), fill=(120, 124, 132, 255))
+    _quarter(d, 280, 215, 70, BL, WH); d.text((280, 372), "МОТОРЫ ДЛЯ САМОЛЁТОВ", font=_font(26), fill=ink, anchor="mm")
+    return _arr(im)
+def flag_vs_emblem():
+    im = Image.new("RGBA", (640, 420), (240, 232, 214, 255)); d = ImageDraw.Draw(im); ink = (40, 34, 30, 255); BL = (40, 100, 190, 255); WH = (244, 244, 248, 255)
+    d.rectangle((8, 8, 631, 411), outline=ink, width=5)
+    for i in range(5):
+        for j in range(4):
+            d.rectangle((30 + i * 50, 70 + j * 50, 80 + i * 50, 120 + j * 50), fill=BL if (i + j) % 2 == 0 else WH)
+    d.rectangle((30, 70, 280, 270), outline=ink, width=4); d.text((155, 40), "ФЛАГ БАВАРИИ", font=_font(26), fill=ink, anchor="mm")
+    _quarter(d, 480, 170, 90, WH, BL); d.text((480, 40), "ЭМБЛЕМА", font=_font(26), fill=ink, anchor="mm")
+    d.text((320, 350), "цвета — наоборот", font=_font(40), fill=(150, 30, 30, 255), anchor="mm")
+    return _arr(im)
