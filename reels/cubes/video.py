@@ -6,13 +6,14 @@ from scipy.io import wavfile
 import scipy.signal as ss
 from PIL import Image, ImageDraw, ImageFont
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
-import cuberender as R, scenes as S
+import cuberender as R, importlib
+MODNAME = os.environ.get('SCENES', 'scenes'); S = importlib.import_module(MODNAME)
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else f"{HERE}/claude_1000_years.mp4"
 ONLY = sys.argv[2].split(",") if len(sys.argv) > 2 else None
-TMP = "/tmp/claude-0/c1000"; os.makedirs(TMP, exist_ok=True)
+TMP = "/tmp/claude-0/c1000" if MODNAME == "scenes" else f"/tmp/claude-0/{MODNAME}"; os.makedirs(TMP, exist_ok=True)
 W, H, FPS, SR = 1080, 1920, 24, 48000
-PLATE = "Я ПРОСТО СПРОСИЛ,\nЧТО БЫЛО БЫ 1000 ЛЕТ НАЗАД"
+PLATE = getattr(S, "PLATE", "Я ПРОСТО СПРОСИЛ,\nЧТО БЫЛО БЫ 1000 ЛЕТ НАЗАД")
 GAP, LEAD, TAIL = .36, .30, .55
 MUSIC = (f"{HERE}/../music/goldberg_aria.mp3", 2.0)
 
@@ -75,7 +76,7 @@ def envelope(sc, who):
 def blink(f, off):
     ph = (f / FPS + off) % 3.1
     return max(0.0, 1 - abs(ph - .1) / .1) if ph < .2 else 0.0
-WHOS = ["boy", "claude", "egypt", "roman", "girl", "onfim"]
+WHOS = list(S.LINE.keys()) + ["onfim"]
 PHASE = {w: i * .7 for i, w in enumerate(WHOS)}
 
 def state_key(sc, f, env):
@@ -83,7 +84,7 @@ def state_key(sc, f, env):
     for w in WHOS:
         tk.append(q(float(env[w][f]), (0, .35, .7, 1.0)) if w in env else 0); bl.append(q(blink(f, PHASE[w]), (0, .5, 1)))
     br = round(.004 * np.sin(t * 2.6), 3)
-    arm_roman = .9 if any(w == "roman" and st - .2 <= t <= st + d + .3 for w, _, st, d, _ in sc["tl"]) else 0.0
+    arm_roman = .9 if any(w in ("roman", "legion") and st - .2 <= t <= st + d + .3 for w, _, st, d, _ in sc["tl"]) else 0.0
     onf = q(.5 + .3 * np.sin(t * 5), (.2, .5, .8)) if sc["name"] == "onfim" else 0
     boy_arm = .0; book = 0
     if sc["name"] == "room2":
@@ -91,7 +92,7 @@ def state_key(sc, f, env):
     return (tuple(tk), tuple(bl), br, arm_roman, onf, boy_arm, book)
 def key_to_st(key):
     tk, bl, br, ar, onf, ba, book = key
-    st = dict(talk=dict(zip(WHOS, tk)), blink=dict(zip(WHOS, bl)), bob={}, arm={"roman": ar, "onfim": onf, "boy": ba}, book=book)
+    st = dict(talk=dict(zip(WHOS, tk)), blink=dict(zip(WHOS, bl)), bob={}, arm={"roman": ar, "legion": ar, "onfim": onf, "boy": ba}, book=book)
     st["bob"] = {w: br * (1 if i % 2 == 0 else -1) + .012 * tk[i] for i, w in enumerate(WHOS)}
     return st
 
@@ -161,6 +162,6 @@ if __name__ == "__main__":
             fr = im.crop((x0, y0, x0 + W, y0 + H)).convert("RGBA"); fr.alpha_composite(base)
             t = f / FPS
             for j, (who, text, st, d, a) in enumerate(sc["tl"]):
-                if st - .05 <= t <= st + d + .3: fr.alpha_composite(sub_layer(text.replace("+", ""), cta=(sc["name"] == "room2" and j == last)))
+                if st - .05 <= t <= st + d + .3: fr.alpha_composite(sub_layer(text.replace("+", ""), cta=((sc["name"] == "room2" or sc.get("final")) and j == last)))
             ff.stdin.write(fr.convert("RGB").tobytes())
     ff.stdin.close(); ff.wait(); print("готово", OUT)
