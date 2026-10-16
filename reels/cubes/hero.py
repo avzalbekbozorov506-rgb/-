@@ -42,3 +42,24 @@ def hero_photo(pos, yaw=0.0, talk=0.0, blink=0.0, bob=0.0, arm=0.0, k=1.0):
     mh = .008 + .05 * talk; fx, fy = .504, .75                                                                  # рот
     out += [Box(P(((fx - .5) * W_, -.234, zc + (.5 - fy) * H_)), S(.24 * W_, .006, mh), (52, 16, 20), yaw, shadow=False)]
     return out
+
+_FACEPIX = None
+def hero_pixel(pos, yaw=0.0, talk=0.0, blink=0.0, bob=0.0, arm=0.0, k=1.0):
+    """Как hero_photo, но лицо — «пиксельная» текстура 72×103 с фото (в стиле кубов), сверху и по бокам кубические волосы."""
+    global _FACEPIX
+    if _FACEPIX is None:
+        _FACEPIX = np.asarray(Image.open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "face_pix.png")).convert("RGBA"), np.uint8)
+    out = person(pos, yaw=yaw, talk=0, blink=0, bob=bob, arm=arm, k=k, skin=SKIN, top=SWEAT, bottom=PANTS, hair=HAIR, hat="none", blush=False, mustache=False)
+    out = [b for b in out if not (abs(b.s[2] * 2 / k - .50) < 1e-3 and abs(b.s[0] * 2 / k - .50) < 1e-3)]
+    out = [b for b in out if not (abs(b.s[0] * 2 / k - .52) < 1e-3)]
+    out = [b for b in out if not (abs(b.s[0] * 2 / k - .07) < 1e-3)]
+    out = [b for b in out if not (abs(b.s[0] * 2 / k - .04) < 1e-3 and abs(b.s[2] * 2 / k - .10) < 1e-3)]
+    P = lambda o: _place(pos, yaw, (o[0] * k, o[1] * k, o[2] * k + bob * k)); S = lambda *a: tuple(v * k for v in a)
+    W_, H_ = .54, .54 * 712 / 496; zc = .74 + H_ / 2 - .03
+    out += [Box(P((0, -.01, .52)), S(.46, .26, .50), SWEAT, yaw)]
+    out += [Box(P((0, 0, zc)), S(W_, .46, H_), (30, 24, 22), yaw, img=_FACEPIX, gloss=.03)]
+    out += [Box(P((0, .01, zc + H_ / 2 + .02)), S(W_ + .02, .48, .07), HAIR, yaw), Box(P((-W_ / 2 - .005, .02, zc + H_ * .28)), S(.03, .44, H_ * .38), HAIR, yaw),
+            Box(P((W_ / 2 + .005, .02, zc + H_ * .28)), S(.03, .44, H_ * .38), HAIR, yaw)]
+    mh = .008 + .04 * talk; fx, fy = .504, .75
+    out += [Box(P(((fx - .5) * W_, -.234, zc + (.5 - fy) * H_)), S(.20 * W_, .006, mh), (52, 16, 20), yaw, shadow=False)]
+    return out
