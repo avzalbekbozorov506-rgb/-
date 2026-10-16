@@ -40,7 +40,7 @@ def car(d, x, y, a=0, s=1.0, xd=1, ys=1.0, alpha=1.0, xray=0.0, tt=0.0, jets=(),
         d.polygon([T(p) for p in GLASS], fill=dim((18, 26, 48), k))
     if xray > 0:
         d.polygon([T(p) for p in BODY], outline=dim(CY, xray), fill=(10, 24, 44))
-        d.rounded_rectangle([T((-150, -62))[0], min(T((-150, -62))[1], T((120, -44))[1]), T((120, -44))[0], max(T((-150, -62))[1], T((120, -44))[1])], 6, fill=(14, 80, 90), outline=(40, 200, 200))
+        bp = [T((-150, -62)), T((120, -44))]; d.rounded_rectangle([min(bp[0][0], bp[1][0]), min(bp[0][1], bp[1][1]), max(bp[0][0], bp[1][0]), max(bp[0][1], bp[1][1])], 6, fill=(14, 80, 90), outline=(40, 200, 200))
         for ti, (x0, yy, x1) in enumerate(TANKS):
             p0, p1 = T((x0, yy - 11)), T((x1, yy + 11)); xs, ys_ = sorted([p0[0], p1[0]]), sorted([p0[1], p1[1]])
             d.rounded_rectangle([xs[0], ys_[0], xs[1], ys_[1]], 18 * s, fill=(60, 40, 10), outline=ORG, width=3 * K)
