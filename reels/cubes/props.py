@@ -52,6 +52,6 @@ def payslip():
     d.rectangle((8, 8, 411, 551), outline=(170, 130, 80, 255), width=6)
     d.text((210, 52), "РАСЧЁТНЫЙ ЛИСТОК", font=F(36), fill=ink, anchor="mm"); d.line((40, 86, 380, 86), fill=ink, width=3)
     d.text((40, 120), "Жалованье: 50 денариев", font=F(28), fill=ink)
-    for i, t in enumerate(["− еда", "− ячмень", "− сапоги", "− ремни", "− туника"]): d.text((60, 190 + i * 54), t, font=F(34), fill=red)
+    for i, t in enumerate(["− еда", "− ячмень", "− сапоги", "− ремни", "− рубаха"]): d.text((60, 190 + i * 54), t, font=F(34), fill=red)
     d.line((40, 470, 380, 470), fill=ink, width=3); d.text((40, 495), "Остаток:  ?", font=F(40), fill=ink)
     return _arr(im)
