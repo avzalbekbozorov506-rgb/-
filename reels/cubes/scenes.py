@@ -190,6 +190,6 @@ SCENES = [
     dict(name="onfim", tag="НОВГОРОД  ·  XIII век", static=onfim_static, dyn=onfim_dyn, camera=onfim_cam, lights=onfim_lights, region=(-3, 3.5, -.2, 3.6, -.3, 3.2), dof=(3.0, 1.4),
          lines=[("claude", "А это твой коллега. Он+фим, семь лет."), ("claude", "Вместо уроков рисовал себя богатырём. Семьсот шестьдесят лет назад.")]),
     dict(name="room2", tag=None, static=room_static, dyn=room_dyn, camera=CAM, lights=room_lights, region=(-3, 3.5, -.2, 3.6, -.3, 3.5), dof=(3.3, 1.5), book_after=0,
-         lines=[("boy", "Значит, мне тоже можно не делать уроки?"), ("claude", "Он+фим азбуку всё-таки написал. Она тоже сохранилась."),
+         lines=[("boy", "Значит, мне тоже можно не делать уроки?"), ("claude", "Он+фим буквы всё-таки выводил. Они тоже сохранились."),
                 ("boy", "Даже тут не повезло…"), ("claude", "Подпишись — тут история смешнее, чем в учебнике.")]),
 ]
