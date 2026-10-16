@@ -126,6 +126,9 @@ _SUBS = {}
 def sub_layer(text, cta=False):
     k = (text, cta)
     if k in _SUBS: return _SUBS[k]
+    if not os.environ.get("SUBS_OLD"):                                  # мягкие субтитры (по умолчанию); SUBS_OLD=1 — прежние жирные
+        from subs_soft import soft_sub_layer
+        _SUBS[k] = soft_sub_layer(text, cta, W, H); return _SUBS[k]
     ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(ov); fs = font(60, "ExtraBold"); rows, cur = [], ""
     for w_ in text.split():
         if d.textlength((cur + " " + w_).strip(), font=fs) > 900: rows.append(cur); cur = w_
