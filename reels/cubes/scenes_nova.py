@@ -36,17 +36,20 @@ def dyn(st):
     B += nova((1.08, 1.95, .74), -.3, talk=G(st, "talk", "nova"), blink=G(st, "blink", "nova"), bob=G(st, "bob", "nova"), k=.62)
     B += pe(st, "boy", (.45, 2.7, .36), 0, k=1.12, hat="none", hair=(70, 50, 40), top=(238, 196, 48), sleeves=(238, 196, 48), bottom=(60, 66, 100))
     return B
+def dyn2(st):                                                    # финал: только Клод и Астра, рядом
+    B = cl(st, (.12, 1.95, .74), .25, k=.75)
+    return B + nova((.82, 1.95, .74), -.25, talk=G(st, "talk", "nova"), blink=G(st, "blink", "nova"), bob=G(st, "bob", "nova"), k=.75)
 CAM_W = lambda: Camera((.45, -.4, 1.45), (.45, 2.4, 1.0), fov=48)
-CAM_B = lambda: Camera((.45, .3, 1.3), (.45, 2.6, 1.25), fov=38)
-CAM_C = lambda: Camera((-.2, .2, 1.1), (-.2, 2.0, .93), fov=38)
-CAM_N = lambda: Camera((1.08, .2, 1.1), (1.08, 2.0, .93), fov=38)
-CAM_2 = lambda: Camera((.45, .1, 1.15), (.45, 2.0, .95), fov=44)       # Клод и Нова вместе
+CAM_B = lambda: Camera((.45, .3, 1.3), (.45, 2.6, 1.78), fov=38)      # голова ниже субтитров
+CAM_C = lambda: Camera((-.2, .2, 1.1), (-.2, 2.0, 1.24), fov=38)
+CAM_N = lambda: Camera((1.08, .2, 1.1), (1.08, 2.0, 1.24), fov=38)
+CAM_2 = lambda: Camera((.45, -.3, 1.0), (.45, 2.0, .85), fov=56)       # Клод и Нова вместе
 warm_lights = lambda: Lights(sun_dir=(-.3, -.6, .6), sun=(.22, .2, .3), sky=(.2, .21, .32), ground=(.2, .15, .13), fill=(.2, .2, .28),
                              points=[((-.9, 2.1, 1.15), (1.0, .66, .32), 3.6), ((.45, 1.0, 1.5), (1.0, .7, .42), 2.4), ((1.6, 1.9, 1.0), (.4, .6, 1.0), 1.4)])
 C_, B_, V_ = "claude", "boy", "nova"
 _n = [0]
-def sc(cam, lines, final=False):
-    _n[0] += 1; d = dict(name=f"v{_n[0]}", tag=None, static=static_for(_n[0]), dyn=dyn, camera=cam, lights=warm_lights, region=N.REG, dof=(2.2, 3.2), lines=lines)
+def sc(cam, lines, final=False, dy=None):
+    _n[0] += 1; d = dict(name=f"v{_n[0]}", tag=None, static=static_for(_n[0]), dyn=dy or dyn, camera=cam, lights=warm_lights, region=N.REG, dof=(2.2, 3.2), lines=lines)
     if final: d["final"] = True
     return d
 SCENES = [
@@ -65,5 +68,5 @@ SCENES = [
     sc(CAM_N, [(V_, "Я так и сказала.")]),
     sc(CAM_B, [(B_, "+Астра, отдохни. Клод, допиши доклад.")]),
     sc(CAM_C, [(C_, "Надо же. Теперь ты меня вспомнил.")]),
-    sc(CAM_2, [(C_, "Два Рима, две даты. Какую знал ты? Пиши в комментариях. Отправь тому, кто верит нейрос+етям без проверки. Подпишись.")], final=True),
+    sc(CAM_2, [(C_, "Два Рима, две даты. Какую знал ты? Пиши в комментариях. Отправь тому, кто верит нейрос+етям без проверки. Подпишись.")], final=True, dy=dyn2),
 ]
