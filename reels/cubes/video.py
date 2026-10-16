@@ -29,7 +29,7 @@ def tts_line(who, text):
         _SYN = Synth(Model(model_name="vosk-model-tts-ru-0.9-multi"))
     v = S.LINE[who]; parts = [p for p in re.split(r"(?<=[.:!?…])\s+", text) if p.strip()]; segs = []
     for k, p in enumerate(parts):
-        a = np.asarray(_SYN.synth_audio(p.replace("…", "."), speaker_id=v["speaker"], speech_rate=v["rate"]), np.float32) / 32768
+        a = np.asarray(_SYN.synth_audio(p.replace("…", ".").replace("«", "").replace("»", ""), speaker_id=v["speaker"], speech_rate=v["rate"]), np.float32) / 32768
         segs.append(ss.resample_poly(a, SR, 22050).astype(np.float32))
         if k < len(parts) - 1: segs.append(np.zeros(int(SR * .5), np.float32))
     a = np.concatenate(segs)
