@@ -100,3 +100,40 @@ def flag_vs_emblem():
     _quarter(d, 480, 170, 90, WH, BL); d.text((480, 40), "ЭМБЛЕМА", font=_font(26), fill=ink, anchor="mm")
     d.text((320, 350), "цвета — наоборот", font=_font(40), fill=(150, 30, 30, 255), anchor="mm")
     return _arr(im)
+
+def _board(w=760, h=500):
+    return Image.new("RGBA", (w, h), (34, 74, 58, 255))
+def _chalk(sz): return ImageFont.truetype("/usr/share/fonts/opentype/inter/Inter-Bold.otf", sz)
+WHITE = (244, 244, 236, 255); YEL = (250, 222, 110, 255); PINK = (246, 150, 140, 255)
+def board_cleo():
+    im = _board(); d = ImageDraw.Draw(im); d.rectangle((6, 6, 753, 493), outline=(120, 80, 50, 255), width=8)
+    d.text((380, 50), "КТО ДРЕВНЕЕ?", font=_chalk(40), fill=YEL, anchor="mm")
+    d.line((70, 250, 690, 250), fill=WHITE, width=5)
+    for x, top, bot, c in [(110, "2560 до н. э.", "пирамида Хеопса", WHITE), (390, "30 до н. э.", "Клеопатра", YEL), (650, "1969", "Луна", WHITE)]:
+        d.ellipse((x - 12, 238, x + 12, 262), fill=c); d.text((x, 205), top, font=_chalk(26), fill=c, anchor="mm"); d.text((x, 295), bot, font=_chalk(26), fill=c, anchor="mm")
+    d.line((110, 380, 390, 380), fill=PINK, width=6); d.text((230, 420), "≈ 2500 лет", font=_chalk(34), fill=PINK, anchor="mm")
+    d.line((390, 380, 650, 380), fill=YEL, width=6); d.text((480, 420), "≈ 2000 лет", font=_chalk(34), fill=YEL, anchor="mm")
+    return _arr(im)
+def board_oxford():
+    im = _board(); d = ImageDraw.Draw(im); d.rectangle((6, 6, 753, 493), outline=(120, 80, 50, 255), width=8)
+    d.text((380, 50), "ЧТО СТАРШЕ?", font=_chalk(40), fill=YEL, anchor="mm")
+    d.text((190, 170), "Оксфорд", font=_chalk(44), fill=WHITE, anchor="mm"); d.text((190, 235), "учат с 1096", font=_chalk(36), fill=YEL, anchor="mm")
+    d.text((570, 170), "Ацтеки", font=_chalk(44), fill=WHITE, anchor="mm"); d.text((570, 235), "Теночтитлан, 1325", font=_chalk(30), fill=PINK, anchor="mm")
+    d.line((380, 130, 380, 280), fill=WHITE, width=4)
+    d.line((90, 380, 670, 380), fill=WHITE, width=5)
+    for x, t, c in [(150, "1096", YEL), (560, "1325", PINK)]:
+        d.ellipse((x - 12, 368, x + 12, 392), fill=c); d.text((x, 430), t, font=_chalk(34), fill=c, anchor="mm")
+    return _arr(im)
+def board_vikings():
+    im = _board(); d = ImageDraw.Draw(im); d.rectangle((6, 6, 753, 493), outline=(120, 80, 50, 255), width=8)
+    d.text((380, 50), "РОГАТЫЕ ШЛЕМЫ ВИКИНГОВ", font=_chalk(36), fill=YEL, anchor="mm")
+    d.ellipse((260, 130, 500, 330), outline=WHITE, width=6); d.rectangle((260, 230, 500, 330), fill=(34, 74, 58, 255)); d.arc((260, 130, 500, 330), 180, 360, fill=WHITE, width=6)
+    d.line((300, 150, 250, 100), fill=PINK, width=8); d.line((460, 150, 510, 100), fill=PINK, width=8)
+    d.line((220, 90, 540, 340), fill=PINK, width=10); d.line((540, 90, 220, 340), fill=PINK, width=10)
+    d.text((380, 395), "выдумка 1876 года", font=_chalk(38), fill=YEL, anchor="mm"); d.text((380, 445), "опера Вагнера", font=_chalk(30), fill=WHITE, anchor="mm")
+    return _arr(im)
+def board_final():
+    im = _board(); d = ImageDraw.Draw(im); d.rectangle((6, 6, 753, 493), outline=(120, 80, 50, 255), width=8)
+    d.text((380, 70), "РЕЗУЛЬТАТ", font=_chalk(44), fill=YEL, anchor="mm"); d.text((380, 230), "0 из 3", font=_chalk(130), fill=PINK, anchor="mm")
+    d.text((380, 370), "Домашнее задание:", font=_chalk(34), fill=WHITE, anchor="mm"); d.text((380, 420), "отправить другу", font=_chalk(40), fill=YEL, anchor="mm")
+    return _arr(im)
