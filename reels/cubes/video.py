@@ -110,6 +110,13 @@ def render_state(args):
 def font(sz, w="Black"): return ImageFont.truetype(f"/usr/share/fonts/opentype/inter/Inter-{w}.otf", sz)
 def plate_layer(tag):
     ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(ov)
+    if not PLATE.strip():                                              # без верхней плашки (PLATE = ""): только жёлтая метка места
+        if tag:
+            fc = font(40, "ExtraBold"); tw = d.textlength(tag, font=fc); cw, ch = int(tw + 70), 80
+            chip = Image.new("RGBA", (cw, ch), (0, 0, 0, 0)); cd = ImageDraw.Draw(chip)
+            cd.rounded_rectangle((0, 0, cw - 1, ch - 1), 40, fill=(255, 214, 80, 245)); cd.text((35, 16), tag, font=fc, fill=(30, 24, 20, 255))
+            ov.alpha_composite(chip, ((W - cw) // 2, 230))
+        return ov
     lines = PLATE.split("\n"); sz = 58
     while sz > 36 and max(d.textlength(l, font=font(sz)) for l in lines) > 860: sz -= 2
     ft = font(sz); ws = [d.textlength(l, font=ft) for l in lines]

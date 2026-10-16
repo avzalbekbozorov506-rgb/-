@@ -6,7 +6,7 @@ from cast import _place
 from scenes import (cl, pe, G, CAM, room_static, room_dyn, room_lights, pompeii_static, pompeii_lights, gradient, LINE as _LINE)
 import scenes as S0
 
-PLATE = "В РИМЕ БРАЛИ НАЛОГ\nНА ТУАЛЕТ. ЭТО ПРАВДА"
+PLATE = ""   # верхняя чёрная плашка убрана по просьбе (16.10)
 LINE = dict(_LINE); MUSIC = None
 CAMW = lambda: Camera((.5, -1.5, 1.35), (.5, 1.9, .70), fov=70)
 
