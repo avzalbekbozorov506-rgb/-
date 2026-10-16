@@ -52,8 +52,9 @@ def wall_box(y, w=14, h=4, col=(88, 112, 128), tex=wallpaper, c=0.0, z=1.6):
 def floor_box(col, tex, y=1.2, d=7.0, w=14):
     return Box((0, y, -.1), (w, d, .2), col, tex=tex)
 
-LINE = {  # озвучка: роль -> параметры Vosk
-    "boy": dict(speaker=2, rate=.98, pitch=1.14), "claude": dict(speaker=4, rate=.9, pitch=1.0),
+from voices import AVZAL, CLAUDE
+LINE = {  # озвучка: роль -> параметры Vosk (boy = Авзал; голоса Авзала и Клода заданы в voices.py)
+    "boy": dict(AVZAL), "claude": dict(CLAUDE),
     "egypt": dict(speaker=3, rate=.95, pitch=.90), "roman": dict(speaker=3, rate=.9, pitch=.80),
     "girl": dict(speaker=1, rate=.95, pitch=1.0),
 }
