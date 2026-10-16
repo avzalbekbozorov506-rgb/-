@@ -21,6 +21,10 @@ MUSIC = (f"{HERE}/../music/goldberg_aria.mp3", 2.0)
 _SYN = None
 def tts_line(who, text):
     if who == "_t": return np.zeros(int(float(text) * SR), np.float32)          # молчаливая пауза (таймер), text = секунды
+    if text.startswith("@audio:"):                                              # готовое аудио пользователя «как есть» (без обработки голоса)
+        src, _, lim = text[7:].partition("|"); wv = f"{TMP}/aud_{hashlib.md5(text.encode()).hexdigest()}.wav"       # "|T" — обрезать тишину в конце до T секунд
+        subprocess.run(["ffmpeg", "-nostdin", "-loglevel", "error", "-y", "-i", src] + (["-t", lim] if lim else []) + ["-ar", str(SR), "-ac", "1", wv], check=True)
+        return wavfile.read(wv)[1].astype(np.float32) / 32768
     key = hashlib.md5(f"{who}|{text}|{S.LINE[who]}".encode()).hexdigest(); f = f"{TMP}/tts_{key}.wav"
     if os.path.exists(f): return wavfile.read(f)[1].astype(np.float32) / 32768
     global _SYN
@@ -47,7 +51,8 @@ for sc in SC:
     for ln in sc["lines"]:
         who, text = ln[0], ln[1]; a = tts_line(who, ln[2] if len(ln) > 2 else text); sc["tl"].append((who, text, cur, len(a) / SR, a)); cur += len(a) / SR + GAP
     from subs_sync import sync as _sync
-    sc["subs"] = [[(st + c0, st + c1, ct) for c0, c1, ct in _sync(text.replace("+", ""), a, SR)] if who != "_t" else [] for who, text, st, d, a in sc["tl"]]
+    sc["subs"] = [[(st + c0, st + c1, ct) for c0, c1, ct in (sc["lines"][k][3] if len(sc["lines"][k]) > 3 else _sync(text.replace("+", ""), a, SR))] if who != "_t" else []
+                  for k, (who, text, st, d, a) in enumerate(sc["tl"])]
     sc["dur"] = cur - GAP + TAIL; sc["t0"] = t0; sc["nf"] = int(round(sc["dur"] * FPS)); t0 += sc["nf"] / FPS
 DUR = t0; NF_ALL = sum(s["nf"] for s in SC)
 print("длина ролика", round(DUR, 1), "с, кадров", NF_ALL, flush=True)
@@ -58,6 +63,7 @@ for sc in SC:
 track = track / max(np.abs(track).max(), 1e-6) * .85
 # музыка: тихо под голосом, плавно входит и уходит
 try:
+    if getattr(S, "NO_MUSIC", False): raise RuntimeError("NO_MUSIC")
     subprocess.run(["ffmpeg", "-nostdin", "-loglevel", "error", "-y", "-ss", str(MUSIC[1]), "-t", str(DUR + 1), "-i", MUSIC[0], "-ar", str(SR), "-ac", "1", f"{TMP}/_m.wav"], check=True)
     m = wavfile.read(f"{TMP}/_m.wav")[1].astype(np.float32) / 32768; m = np.pad(m, (0, max(0, len(track) - len(m))))[:len(track)]
     fade = np.minimum(1, np.minimum(np.arange(len(track)) / (SR * 1.5), (len(track) - np.arange(len(track))) / (SR * 2.5)))
@@ -74,6 +80,10 @@ def envelope(sc, who):
         for i in range(int(d * FPS) + 1):
             seg = a[i * hop:(i + 1) * hop]
             if len(seg) and 0 <= int(st * FPS) + i < n: env[int(st * FPS) + i] = np.sqrt((seg ** 2).mean())
+    if sc.get("gate", {}).get(who):
+        m = np.zeros(n, bool)
+        for g0, g1 in sc["gate"][who]: m[int(g0 * FPS):int(g1 * FPS) + 1] = True
+        env = env * m
     ref = np.percentile(env[env > 0], 90) if (env > 0).any() else 1
     return np.clip(env / ref, 0, 1) ** .8
 def blink(f, off):
