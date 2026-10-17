@@ -60,6 +60,11 @@ def timeline():
     return sc, t0
 
 from scenes_x import *
+import importlib
+_M = importlib.import_module(os.environ.get("EXPL", "scenes_x"))
+SCENES = _M.SCENES
+if hasattr(_M, "SCRIPT"): SCRIPT = _M.SCRIPT
+HEADER = getattr(_M, "HEADER", "ФИЗИКА · ПРЕЗЕНТАЦИЯ 15.10.2026")
 Y0, Y1 = 250, 1400
 from PIL import ImageFilter
 
@@ -87,7 +92,7 @@ def frame(i, SC, DUR):
     reg = img.crop((0, 0) + lay.size); reg = ImageChops.screen(reg, glow.point(lambda v: int(v * .8))); img.paste(reg, (0, 0))
     d = ImageDraw.Draw(img)
     # шапка: HUD
-    d.text((54, 70), "ФИЗИКА · ПРЕЗЕНТАЦИЯ 15.10.2026", font=F(22, "Medium"), fill=(110, 140, 170))
+    d.text((54, 70), HEADER, font=F(22, "Medium"), fill=(110, 140, 170))
     d.rectangle([54, 130, W - 54, 134], fill=(20, 40, 64)); d.rectangle([54, 130, 54 + (W - 108) * min(1, t / DUR), 134], fill=CY)
     # субтитры (мягкие, пословные фразы)
     cur = next((s for s in sc["subs"] if s[0] <= t <= s[1]), None)
