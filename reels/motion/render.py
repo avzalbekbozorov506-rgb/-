@@ -17,7 +17,7 @@ def worker(args):
     out = []
     with sync_playwright() as p:
         b = p.chromium.launch(executable_path=CHROME, args=["--no-sandbox"]); pg = b.new_page(viewport={"width": 1080, "height": 1920})
-        pg.add_init_script("window.TL=" + json.dumps(tl)); pg.goto("file://" + os.path.join(HERE, "stage.html")); pg.wait_for_timeout(400)
+        pg.add_init_script("window.TL=" + json.dumps(tl)); pg.goto("file://" + os.path.join(HERE, os.environ.get("STAGE", "stage.html"))); pg.wait_for_timeout(400)
         for i in ids:
             pg.evaluate(f"seek({i / FPS})"); pg.screenshot(path=f"{TMPF}/f_{i:05d}.jpg", type="jpeg", quality=93); out.append(i)
         b.close()
