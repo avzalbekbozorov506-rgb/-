@@ -18,6 +18,7 @@
 .bar{height:62px;border-radius:30px 30px 0 0;background:rgba(255,255,255,.07);display:flex;align-items:center;padding:0 26px;gap:12px;font-weight:700;font-size:26px;color:#9fb4d8}
 .dot{width:20px;height:20px;border-radius:50%}
 .card{background:linear-gradient(160deg,rgba(28,40,74,.95),rgba(14,22,46,.95));border-radius:30px;border:3px solid;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+#subpill{position:absolute;right:54px;top:136px;padding:12px 26px;border-radius:30px;background:linear-gradient(90deg,#ffb830,#ff8a30);color:#1a1000;font-weight:900;font-size:26px;box-shadow:0 0 30px rgba(255,170,50,.5)}
 #subs{position:absolute;left:60px;width:960px;top:1500px;text-align:center;font-weight:800;font-size:54px;line-height:1.25}
 #subs .sp{display:inline-block;background:rgba(8,12,24,.62);backdrop-filter:blur(10px);padding:14px 30px;border-radius:30px}
 #hud{position:absolute;left:54px;right:54px;top:64px;font-size:22px;font-weight:700;color:#7f97c4;letter-spacing:2px}
@@ -31,7 +32,7 @@
 <div id="scenes"></div>
 <div id="vig"></div><div id="grain"></div>
 <div id="hud">СЕКРЕТ ДЕНЕГ · РАЗБОР</div><div id="hudbar"><div id="hudfill"></div></div>
-<div id="subs"></div>
+<div id="subpill">+ ПОДПИСАТЬСЯ</div><div id="subs"></div>
 </div>
 <script>
 const TL=window.TL||{scenes:[],dur:1};
@@ -48,11 +49,11 @@ const nf=n=>Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ');
 const S={};const root=document.getElementById('scenes');
 function mk(name,fn){const r=el(root,'scene','');r.style.display='none';S[name]={r,upd:fn(r)};}
 // ---------- сцены ----------
-mk('hook',r=>{const k=words(r,'КАК Я ЗАРАБОТАЛ','top:330px;font-size:80px');const big=el(r,'abs c h1 glow-g','1 000 000 ₽','top:480px;font-size:158px;white-space:nowrap');
-const ch=el(r,'abs c','<span class="chip" style="font-size:60px">ЗА 14 ДНЕЙ</span>','top:790px');const cc=el(r,'abs c h1 glow-c','с Claude Code','top:930px;font-size:78px');
+mk('hook',r=>{const sb=el(r,'abs c','<span style="display:inline-block;padding:26px 64px;border-radius:70px;background:linear-gradient(90deg,#ffb830,#ff8a30);color:#1a1000;font:900 62px Inter;box-shadow:0 0 70px rgba(255,170,50,.6)">▶ ПОДПИШИСЬ</span>','top:230px');const k=words(r,'КАК Я ЗАРАБОТАЛ','top:400px;font-size:80px');const big=el(r,'abs c h1 glow-g','1 000 000 ₽','top:540px;font-size:158px;white-space:nowrap');
+const ch=el(r,'abs c','<span class="chip" style="font-size:60px">ЗА 14 ДНЕЙ</span>','top:830px');const cc=el(r,'abs c h1 glow-c','с Claude Code','top:960px;font-size:78px');
 const co=[...Array(26)].map((_,i)=>el(r,'abs h1 glow-y','₽','left:'+(40+(i*83)%1000)+'px;top:1100px;font-size:'+(50+i%4*14)+'px'));
-return (lt,dur)=>{popWords(k,lt,.1);const p=tw(lt,.55,1.15,E.ob);big.style.transform=`scale(${px(.4+.6*p)})`;big.style.opacity=tw(lt,.55,.8);big.style.filter=`blur(${px((1-tw(lt,.55,.9))*20)}px)`;
-ch.style.transform=`scale(${px(tw(lt,1.3,1.8,E.ob))})`;ch.style.opacity=tw(lt,1.3,1.5);cc.style.opacity=tw(lt,1.9,2.3);cc.style.transform=`translateY(${px((1-tw(lt,1.9,2.4))*40)}px)`;
+return (lt,dur)=>{const pb=tw(lt,0,.5,E.ob);sb.style.transform=`scale(${px((.5+.5*pb)*(1+.04*Math.sin(lt*9)))})`;sb.style.opacity=tw(lt,0,.2);popWords(k,lt,.5);const p=tw(lt,1.0,1.6,E.ob);big.style.transform=`scale(${px(.4+.6*p)})`;big.style.opacity=tw(lt,1.0,1.25);big.style.filter=`blur(${px((1-tw(lt,1.0,1.35))*20)}px)`;
+ch.style.transform=`scale(${px(tw(lt,1.7,2.2,E.ob))})`;ch.style.opacity=tw(lt,1.7,1.9);cc.style.opacity=tw(lt,2.3,2.7);cc.style.transform=`translateY(${px((1-tw(lt,2.3,2.8))*40)}px)`;
 co.forEach((c,i)=>{const u=((lt*.5+i/26)%1);c.style.top=(1500-u*700)+'px';c.style.opacity=.7*Math.sin(u*Math.PI);c.style.transform=`rotate(${px(Math.sin(lt*2+i)*25)}deg)`})}});
 mk('day1',r=>{const w=el(r,'abs win','','left:110px;top:360px;width:860px;height:600px;transform-origin:50% 100%');w.innerHTML='<div class="bar"><span class="dot" style="background:#ff5f5a"></span><span class="dot" style="background:#ffbe32"></span><span class="dot" style="background:#28c850"></span><span style="margin-left:20px">claude-code · терминал</span></div>';
 const t=el(w,'abs','','left:40px;top:110px;font:700 40px/1.4 monospace;color:#4dffb0;width:780px');const badge=el(r,'abs c','<span class="chip glow-y" style="font-size:66px;border-color:#ffc83d">ДЕНЬ № 1</span>','top:1070px');
