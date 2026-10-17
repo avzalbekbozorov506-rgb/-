@@ -10,6 +10,7 @@ import build
 M = importlib.import_module(os.environ.get("EXPL", "scenes_two"))
 W, H, FPS = 1080, 1920, 24
 IMG = {}
+CHUNKS = []
 def load(n):
     if n not in IMG: IMG[n] = Image.open(os.path.join(HERE, "img_two_shifts", f"{n:02d}.jpg")).convert("RGB")
     return IMG[n]
@@ -42,10 +43,28 @@ def frame(i, segs, words, DUR):
     a = a * v[..., None] + np.random.RandomState(i).randn(H, W, 1) * 3; fr = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
     d = ImageDraw.Draw(fr, "RGBA")
     d.text((W - 54, 96), "@mysli.vekov", font=F(26, "SemiBold"), fill=(255, 255, 255, 150), anchor="ra")
-    w = next((x for x in words if x[0] <= t < x[1] + .12), None)
-    if w:
-        f = F(54, "Bold"); tw = d.textlength(w[2], font=f); x = (W - tw) / 2; y = 1660
-        d.text((x + 3, y + 3), w[2], font=f, fill=(0, 0, 0, 200)); d.text((x, y), w[2], font=f, fill=(255, 255, 255, 255))
+    ph = next((c for c in CHUNKS if c[0] <= t < c[1] + .1), None)
+    if ph:
+        c0, c1, txt = ph; al = max(0, min(1, (t - c0) / .22, (c1 + .1 - t) / .18))
+        f = F(52, "Bold"); ws = txt.split(); lines = [[]]
+        for w_ in ws:
+            tr = " ".join(lines[-1] + [w_])
+            if lines[-1] and d.textlength(tr, font=f) > 900: lines.append([w_])
+            else: lines[-1].append(w_)
+        lh = 72; y0 = 1580 - (len(lines) - 1) * lh // 2 + int((1 - al) * 18)
+        wmax = max(d.textlength(" ".join(l), font=f) for l in lines)
+        d.rounded_rectangle(((W - wmax) / 2 - 40, y0 - 24, (W + wmax) / 2 + 40, y0 + len(lines) * lh - 4), 36, fill=(10, 6, 4, int(150 * al)))
+        for li, l in enumerate(lines):
+            x = (W - d.textlength(" ".join(l), font=f)) / 2
+            for w_ in l:
+                key = re.sub(r"[^\w]", "", w_).lower() in M.KEY
+                col = (255, 196, 90, int(255 * al)) if key else (255, 255, 255, int(255 * al))
+                d.text((x, y0 + li * lh), w_, font=f, fill=col); x += d.textlength(w_ + " ", font=f)
+    chip = M.CHIPS.get(seg["name"])
+    if chip and kin > .2:
+        ca = int(255 * min(1, (kin - .2) / .3)); ft = F(34, "Bold"); tw_ = d.textlength(chip, font=ft)
+        d.rounded_rectangle((54, 150, 54 + tw_ + 50, 214), 32, fill=(10, 6, 4, int(180 * ca / 255)), outline=(255, 196, 90, ca), width=2)
+        d.text((79, 160), chip, font=ft, fill=(255, 210, 130, ca))
     if t < 2.2: 
         al = int(255 * min(1, t / .3) * min(1, (2.2 - t) / .4)); d.rounded_rectangle((300, 200, 780, 290), 45, fill=(255, 184, 48, al))
         d.text((540, 245), "▶ ПОДПИШИСЬ", font=F(46, "Black"), fill=(26, 16, 0, al), anchor="mm")
@@ -54,7 +73,7 @@ def job(args):
     i, segs, words, DUR = args; return i, frame(i, segs, words, DUR)
 if __name__ == "__main__":
     out = sys.argv[1]; prev = sys.argv[2] if len(sys.argv) > 2 else ""
-    SC, DUR, segs, words = plan(); NF = int(round(DUR * FPS)); print("длина", round(DUR, 1), "с")
+    SC, DUR, segs, words = plan(); CHUNKS.extend(c for s_ in SC for c in s_["subs"]); NF = int(round(DUR * FPS)); print("длина", round(DUR, 1), "с")
     if prev:
         ts = [float(x) for x in prev.split(",")]; ims = [frame(int(t * FPS), segs, words, DUR).resize((360, 640)) for t in ts]
         sh = Image.new("RGB", (360 * len(ims), 640))
