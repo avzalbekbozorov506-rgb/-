@@ -24,14 +24,30 @@
 #hud{position:absolute;left:54px;right:54px;top:64px;font-size:22px;font-weight:700;color:#7f97c4;letter-spacing:2px}
 #hudbar{position:absolute;left:54px;right:54px;top:112px;height:5px;background:rgba(255,255,255,.1);border-radius:3px}
 #hudfill{height:100%;background:linear-gradient(90deg,#4ab0ff,#4dffb0);border-radius:3px;box-shadow:0 0 14px #4ab0ff}
+<style>
+@font-face{font-family:'Cormorant';font-weight:700;src:url('../fonts/CormorantGaramond-Bold.ttf')}
+@font-face{font-family:'Cormorant';font-weight:500;font-style:italic;src:url('../fonts/CormorantGaramond-MediumItalic.ttf')}
+@font-face{font-family:'Cormorant';font-weight:500;src:url('../fonts/CormorantGaramond-Medium.ttf')}
+#stage{background:radial-gradient(ellipse at 50% 35%,#2a1018 0%,#14080c 55%,#0a0709 100%)}
+.blob{opacity:.35}#b1{background:rgba(190,60,80,.45)!important}#b2{background:rgba(230,170,70,.3)!important}#b3{background:rgba(90,40,120,.3)!important}
+#grid{background-image:radial-gradient(rgba(241,230,207,.09) 1.4px,transparent 1.6px)!important;background-size:22px 22px!important;mask-image:radial-gradient(circle at 50% 45%,#000 10%,transparent 70%)!important}
+#hud{color:#b79b66!important;letter-spacing:7px!important;text-align:center;font-size:21px!important}
+#hudfill{background:linear-gradient(90deg,#c98a2c,#f1d58a)!important;box-shadow:0 0 14px #e6b95c!important}
+#subpill{background:linear-gradient(90deg,#e6b95c,#c98a2c)!important;box-shadow:0 0 24px rgba(230,185,92,.5)!important;color:#1a1000!important}
+#subs{top:1490px!important;font-size:56px!important}
+#subs .sp{background:linear-gradient(180deg,rgba(10,6,8,.55),rgba(10,6,8,.8))!important;border:2px solid rgba(230,185,92,.35);border-radius:22px!important;padding:14px 30px!important}
+.card{border-radius:22px!important}
+#frame{position:absolute;inset:34px;border:2px solid rgba(230,185,92,.35);border-radius:6px;pointer-events:none}
+#frame:before,#frame:after{content:'';position:absolute;width:60px;height:60px;border:4px solid #e6b95c;opacity:.8}
+#frame:before{left:-6px;top:-6px;border-right:0;border-bottom:0}#frame:after{right:-6px;bottom:-6px;border-left:0;border-top:0}
 </style></head><body><div id="stage">
 <div class="blob" id="b1" style="width:900px;height:900px;background:rgba(60,110,255,.38)"></div>
 <div class="blob" id="b2" style="width:800px;height:800px;background:rgba(150,70,255,.3)"></div>
 <div class="blob" id="b3" style="width:700px;height:700px;background:rgba(30,220,160,.2)"></div>
 <div id="grid"></div>
 <div id="scenes"></div>
-<div id="vig"></div><div id="grain"></div>
-<div id="hud">ИСТОРИЯ · КАК НАМ ВНУШАЮТ</div><div id="hudbar"><div id="hudfill"></div></div>
+<div id="frame"></div><div id="vig"></div><div id="grain"></div>
+<div id="hud">МЫСЛИ ВЕКОВ · ИСТОРИЯ</div><div id="hudbar"><div id="hudfill"></div></div>
 <div id="subpill">+ ПОДПИСАТЬСЯ</div><div id="subs"></div>
 </div>
 <script>
@@ -48,49 +64,84 @@ function popWords(d,lt,t0,step=.09,dur=.5){d._w.forEach((s,i)=>{const p=tw(lt,t0
 const nf=n=>Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ');
 const S={};const root=document.getElementById('scenes');
 function mk(name,fn){const r=el(root,'scene','');r.style.display='none';S[name]={r,upd:fn(r)};}
-// ---------- сцены: бритва 1915 ----------
-const bar=(r,top,label,col)=>{const w=el(r,'abs','','left:110px;top:'+top+'px;width:860px;height:150px');el(w,'abs','<span style="font:800 36px Inter;color:#c8d4ee">'+label+'</span>','left:0;top:0');const bg=el(w,'abs','','left:0;top:60px;width:860px;height:64px;border-radius:32px;background:rgba(255,255,255,.1)');const f=el(bg,'abs','','left:0;top:0;height:64px;width:0;border-radius:32px;background:'+col);return {w,f}};
-const fade=(e,lt,a,b=a+.4,dy=40)=>{const p=tw(lt,a,b,E.oc);e.style.opacity=tw(lt,a,a+.25);e.style.transform=`translateY(${px((1-p)*dy)}px)`};
-const RAZOR='<svg width="300" height="300" viewBox="0 0 300 300"><g transform="rotate(-30 150 150)"><rect x="40" y="120" width="170" height="50" rx="10" fill="#ffc83d" style="filter:drop-shadow(0 0 22px #ffc83d)"/><rect x="200" y="100" width="70" height="90" rx="8" fill="#cfe0ff"/><rect x="210" y="112" width="50" height="66" rx="4" fill="#0d1630"/><line x1="214" y1="112" x2="214" y2="178" stroke="#6fd8ff" stroke-width="4"/></g></svg>';
-const DRESS=(id)=>'<svg width="560" height="800" viewBox="0 0 560 800"><circle cx="280" cy="90" r="64" fill="#e8eeff"/><path id="'+id+'tor" d="M230 150 L330 150 L350 380 L210 380 Z" fill="#8aa0cf"/><path id="'+id+'slL" fill="#8aa0cf"/><path id="'+id+'slR" fill="#8aa0cf"/><path id="'+id+'sk" fill="#5a74b3"/><g id="'+id+'lg" opacity="0"><rect x="238" y="0" width="30" height="0" rx="12" fill="#e8eeff"/><rect x="292" y="0" width="30" height="0" rx="12" fill="#e8eeff"/></g></svg>';
-const dress=(el0,id,sleeve,hem)=>{const g=s=>el0.querySelector('#'+id+s);
-g('slL').setAttribute('d',`M230 150 L180 150 L${180-20} ${150+sleeve} L${225-20} ${150+sleeve} L240 190 Z`);g('slR').setAttribute('d',`M330 150 L380 150 L${380+20} ${150+sleeve} L${335+20} ${150+sleeve} L320 190 Z`);
-g('sk').setAttribute('d',`M210 380 L350 380 L${350+(hem-380)*.35} ${hem} L${210-(hem-380)*.35} ${hem} Z`);
-const lg=g('lg');lg.setAttribute('opacity',hem<760?1:0);const rs=lg.querySelectorAll('rect');rs.forEach(x=>{x.setAttribute('y',hem);x.setAttribute('height',Math.max(0,780-hem))})};
-mk('hook',r=>{const t1=el(r,'abs c h1','ЗА 60 СЕКУНД ОБЪЯСНЮ','top:380px;font-size:84px;white-space:nowrap');const t2=el(r,'abs c h1 glow-r','КАК ДЕВУШЕК<br>ЗАСТАВИЛИ БРИТЬСЯ','top:490px;font-size:100px;line-height:1.05');
-const rz=el(r,'abs','','left:390px;top:800px;width:300px;height:300px');rz.innerHTML=RAZOR;const t3=el(r,'abs c h1 glow-y','НЕ МОДА. РЕКЛАМА.','top:1150px;font-size:84px;white-space:nowrap');
-return (lt)=>{fade(t1,lt,0,.5);const p=tw(lt,.4,1.1,E.ob);t2.style.opacity=tw(lt,.4,.7);t2.style.transform=`scale(${px(.5+.5*p)})`;const q=tw(lt,1.0,1.8,E.ob);rz.style.opacity=tw(lt,1.0,1.3);rz.style.transform=`rotate(${px((1-q)*-90+Math.sin(lt*2)*6)}deg) scale(${px(.5+.5*q)})`;fade(t3,lt,3.2,3.7,50)}});
-mk('before',r=>{const yr=el(r,'abs c h1 glow-c','ДО 1915 ГОДА','top:260px;font-size:100px;white-space:nowrap');const d=el(r,'abs','','left:260px;top:420px;width:560px;height:800px');d.innerHTML=DRESS('a');
-const c=el(r,'abs c','<span class="chip" style="font-size:44px;border-color:#6fd8ff;color:#6fd8ff">МАССОВОЙ ПРИВЫЧКИ НЕ БЫЛО</span>','top:1260px');
-return (lt)=>{fade(yr,lt,0,.5);d.style.opacity=tw(lt,.3,.8);dress(d,'a',230,770);fade(c,lt,2.5,3)}});
-mk('market',r=>{const t=el(r,'abs c h1 glow-c','БРИТВЫ ДЖИЛЛЕТТ','top:250px;font-size:84px');const pie=el(r,'abs','','left:290px;top:370px;width:500px;height:500px');
-pie.innerHTML='<svg width="500" height="500" viewBox="-250 -250 500 500"><circle r="170" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="80"/><circle id="pm" r="170" fill="none" stroke="#6fd8ff" stroke-width="80" transform="rotate(-90)"/><text id="pt" y="22" text-anchor="middle" fill="#fff" font-size="64" font-weight="900" font-family="Inter">50%</text></svg>';
-const l1=el(r,'abs c','<span style="font:800 40px Inter;color:#6fd8ff">● мужчины покупают</span>','top:890px');const l2=el(r,'abs c','<span style="font:800 40px Inter;color:#ff5468">○ вторая половина — без бритвы</span>','top:950px');
-const box=el(r,'abs card','<div style="text-align:center;font:800 36px Inter;color:#9fb4d8;margin-top:26px">1915 · ПЕРВАЯ БРИТВА ДЛЯ ЖЕНЩИН</div><div style="text-align:center;font:900 76px Inter;color:#ffc83d;margin-top:20px;text-shadow:0 0 40px rgba(255,190,50,.5)">МИЛЕДИ ДЕКОЛЬТЕ</div>','left:90px;top:1080px;width:900px;height:230px;border-color:#ffc83d');
-return (lt,dur)=>{fade(t,lt,0,.5);pie.style.opacity=tw(lt,.3,.7);const k=tw(lt,.6,1.6,E.oc);pie.querySelector('#pm').setAttribute('stroke-dasharray',px(1068*.5*k)+' 1068');fade(l1,lt,1.6);fade(l2,lt,2.6);const u=tw(lt,dur*.55,dur*.55+.7,E.ob);box.style.opacity=tw(lt,dur*.55,dur*.55+.3);box.style.transform=`scale(${px(.7+.3*u)})`}});
-mk('ad',r=>{const pg=el(r,'abs','','left:130px;top:290px;width:820px;height:1000px;background:#efe3c8;border-radius:12px;box-shadow:0 30px 80px rgba(0,0,0,.6);transform-origin:50% 50%');
-el(pg,'abs','<span style="font:700 34px Georgia,serif;color:#5b4a2a;letter-spacing:6px">HARPER\'S BAZAAR · 1915</span>','left:50px;top:40px');
-const q=el(pg,'abs','','left:50px;top:150px;width:720px;font:700 54px/1.3 Georgia,serif;color:#2b2112');
-const stamp=el(pg,'abs','<span style="font:900 64px Inter;color:#b3162d;border:10px solid #b3162d;border-radius:16px;padding:6px 30px">«НЕПРИЛИЧНЫЕ»</span>','left:90px;top:640px;transform-origin:center');
-const sub=el(pg,'abs','<span style="font:700 40px Inter;color:#5b4a2a">волосы названы проблемой</span>','left:50px;top:850px');
-const txt='Летнее платье и современные танцы требуют убрать волосы.';
-return (lt,dur)=>{const p=tw(lt,0,.7,E.ob);pg.style.opacity=tw(lt,0,.3);pg.style.transform=`rotate(${px(-3+Math.sin(lt)*.6)}deg) scale(${px(.85+.15*p)})`;
-const n=Math.floor(clamp((lt-.8)*22,0,txt.length));q.textContent=txt.slice(0,n);const sp=tw(lt,dur*.55,dur*.55+.4,E.ob);stamp.style.opacity=tw(lt,dur*.55,dur*.55+.15);stamp.style.transform=`rotate(-8deg) scale(${px(3-2*sp)})`;fade(sub,lt,dur*.7)}});
-mk('fashion',r=>{const t=el(r,'abs c h1 glow-c','РУКАВА И ЮБКИ УКОРАЧИВАЛИСЬ','top:250px;font-size:56px;white-space:nowrap');const d=el(r,'abs','','left:260px;top:360px;width:560px;height:800px');d.innerHTML=DRESS('b');
-const l1=el(r,'abs c h1 glow-y','ПОДМЫШКИ','top:1190px;font-size:84px');const l2=el(r,'abs c h1 glow-r','НОГИ','top:1190px;font-size:84px');
-return (lt,dur)=>{fade(t,lt,0,.5);d.style.opacity=tw(lt,.2,.6);const a=tw(lt,.6,2.6,E.io),b=tw(lt,3,5.4,E.io);dress(d,'b',230-190*a,770-300*b);l1.style.opacity=tw(lt,2.6,3)*(1-tw(lt,4.6,4.9));l2.style.opacity=tw(lt,5.0,5.4);l2.style.transform=`scale(${px(.6+.4*tw(lt,5,5.5,E.ob))})`}});
-mk('formula',r=>{const a=el(r,'abs card','<div style="text-align:center;font:900 70px Inter;margin-top:60px;color:#ff5468">1 · СТЫД</div>','left:140px;top:380px;width:800px;height:220px;border-color:#ff5468');
-const ar=el(r,'abs c','<span style="font:900 120px Inter;color:#6fd8ff">↓</span>','top:640px');
-const b=el(r,'abs card','<div style="text-align:center;font:900 70px Inter;margin-top:60px;color:#4dffb0">2 · РЕШЕНИЕ</div>','left:140px;top:830px;width:800px;height:220px;border-color:#4dffb0');
-const c=el(r,'abs c h1 glow-y','= ПРОДАЖА','top:1120px;font-size:110px');
-return (lt)=>{[a,b].forEach((e,i)=>{const t0=.3+i*1.4,p=tw(lt,t0,t0+.6,E.ob);e.style.opacity=tw(lt,t0,t0+.2);e.style.transform=`translateX(${px((1-p)*(i?400:-400))}px)`});ar.style.opacity=tw(lt,1.2,1.5);const p=tw(lt,2.9,3.5,E.ob);c.style.opacity=tw(lt,2.9,3.1);c.style.transform=`scale(${px(.5+.5*p)})`}});
-mk('defend',r=>{const q=el(r,'abs c h1 glow-g','«НАДО»','top:420px;font-size:200px');const s=el(r,'abs c','откуда взялось это слово?','top:700px;font-size:64px;font-weight:700;color:#e8eeff');
-const c=el(r,'abs card','<div style="padding:40px;font:900 54px/1.25 Inter;text-align:center">РЕШАТЬ ТЕБЕ.<br><span style="color:#ffc83d">ЗНАТЬ — ТОЖЕ ТЕБЕ.</span></div>','left:110px;top:900px;width:860px;height:300px;border-color:#4dffb0');
-return (lt)=>{const p=tw(lt,0,.6,E.ob);q.style.opacity=tw(lt,0,.3);q.style.transform=`scale(${px(.5+.5*p)})`;fade(s,lt,1);const u=tw(lt,2.4,3,E.ob);c.style.opacity=tw(lt,2.4,2.6);c.style.transform=`scale(${px(.8+.2*u)})`}});
-mk('end',r=>{const bm=el(r,'abs','','left:420px;top:330px;width:240px;height:320px');bm.innerHTML='<svg width="240" height="320" viewBox="0 0 240 320"><path d="M20 10 H220 V300 L120 230 L20 300 Z" fill="rgba(255,200,60,.15)" stroke="#ffc83d" stroke-width="12" stroke-linejoin="round" style="filter:drop-shadow(0 0 24px #ffc83d)"/></svg>';
-const t=el(r,'abs c h1 glow-y','СОХРАНИ','top:700px;font-size:160px');const s=el(r,'abs c','чтобы помнить','top:900px;font-size:64px;font-weight:700;color:#e8eeff');
-const b=el(r,'abs c','<span style="display:inline-block;padding:30px 60px;border-radius:70px;background:linear-gradient(90deg,#ffb830,#ff8a30);color:#1a1000;font:900 50px Inter;box-shadow:0 0 60px rgba(255,170,50,.55)">ПОДПИШИСЬ · ЛЮДИ И ВЛАСТЬ</span>','top:1130px');
-return (lt)=>{const p=tw(lt,0,.7,E.ob);bm.style.transform=`translateY(${px((1-p)*-200)}px) scale(${px(.6+.4*p)})`;bm.style.opacity=tw(lt,0,.3);const q=tw(lt,.5,1.1,E.ob);t.style.transform=`scale(${px(.5+.5*q)})`;t.style.opacity=tw(lt,.5,.8);fade(s,lt,1.3);const pb=tw(lt,3,3.6,E.ob);b.style.opacity=tw(lt,3,3.2);b.style.transform=`scale(${px((.6+.4*pb)*(1+.03*Math.sin(lt*6)))})`}});
+// ---------- helpers ----------
+const fade=(e,lt,a,b=a+.5,dy=40)=>{const p=tw(lt,a,b,E.oc);e.style.opacity=tw(lt,a,a+.3);e.style.transform=`translateY(${px((1-p)*dy)}px)`};
+const SER="font-family:'Cormorant',serif;";
+const GOLD='#e6b95c',CREAM='#f1e6cf',CRIM='#d02a45',TEAL='#5fd3c0';
+function person(fill,stroke,w=70){return `<svg width="${w}" height="${w*1.9}" viewBox="0 0 70 133"><circle cx="35" cy="20" r="16" fill="${fill}" stroke="${stroke}" stroke-width="3"/><path d="M12 128 V70 Q12 44 35 44 Q58 44 58 70 V128 Z" fill="${fill}" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/></svg>`}
+function woman(o){ // o: sleeve 0..1 (1=до запястий), hem y (380..770), hat 0..1, sleeveless blend
+ const s=o.sleeve,hem=o.hem,hat=o.hat;const L=180-20*0,sy=150;const slEnd=sy+ (s*300); // длина рукава
+ const skW=(hem-380)*.30;const sk=`M205 380 Q175 ${380+(hem-380)*.5} ${205-skW} ${hem} L${355+skW} ${hem} Q385 ${380+(hem-380)*.5} 355 380 Z`;
+ const legs=hem<740?`<rect x="238" y="${hem-4}" width="30" height="${790-hem}" rx="13" fill="#e9c9a8"/><rect x="292" y="${hem-4}" width="30" height="${790-hem}" rx="13" fill="#e9c9a8"/><ellipse cx="248" cy="792" rx="26" ry="10" fill="#2a1a1a"/><ellipse cx="312" cy="792" rx="26" ry="10" fill="#2a1a1a"/>`:`<ellipse cx="244" cy="792" rx="28" ry="10" fill="#2a1a1a"/><ellipse cx="316" cy="792" rx="28" ry="10" fill="#2a1a1a"/>`;
+ const armSkin=s<.95?`<path d="M232 156 L196 ${150+Math.max(60,slEnd+40)} L222 ${150+Math.max(60,slEnd+40)+6} L246 190 Z" fill="#e9c9a8" opacity="${1-s}"/><path d="M328 156 L364 ${150+Math.max(60,slEnd+40)} L338 ${150+Math.max(60,slEnd+40)+6} L314 190 Z" fill="#e9c9a8" opacity="${1-s}"/>`:'';
+ const slv=s>.02?`<path d="M236 150 Q196 154 ${192-s*14} ${150+slEnd} L${226-s*14} ${150+slEnd+8} Q244 190 252 196 Z" fill="url(#gd)"/><path d="M324 150 Q364 154 ${368+s*14} ${150+slEnd} L${334+s*14} ${150+slEnd+8} Q316 190 308 196 Z" fill="url(#gd)"/>`:'';
+ return `<svg width="560" height="820" viewBox="0 0 560 820"><defs><linearGradient id="gd" x1="0" x2="1"><stop offset="0" stop-color="#7a2a45"/><stop offset="1" stop-color="#a23a58"/></linearGradient><linearGradient id="sg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#8f3350"/><stop offset="1" stop-color="#5e1f38"/></linearGradient></defs>
+ <ellipse cx="280" cy="806" rx="170" ry="14" fill="rgba(0,0,0,.35)"/>${legs}${armSkin}
+ <path d="${sk}" fill="url(#sg)"/>${s>.5?`<path d="M205 ${hem-30} Q280 ${hem-6} 355 ${hem-30}" fill="none" stroke="#e6b95c" stroke-width="4" opacity=".7"/>`:''}
+ <path d="M236 150 Q280 130 324 150 L338 250 Q300 270 322 380 L238 380 Q260 270 222 250 Z" fill="url(#gd)"/>
+ <path d="M236 150 Q280 190 324 150" fill="#e9c9a8"/><rect x="262" y="118" width="36" height="40" rx="14" fill="#e9c9a8"/>${slv}
+ <circle cx="280" cy="92" r="46" fill="#efd3b5"/><path d="M236 86 Q240 38 280 36 Q326 40 326 92 Q312 60 280 62 Q250 64 236 86 Z" fill="#3a2418"/><path d="M240 100 Q232 150 250 160" fill="none" stroke="#3a2418" stroke-width="12" stroke-linecap="round" opacity=".9"/>
+ <g opacity="${hat}"><ellipse cx="280" cy="58" rx="98" ry="22" fill="#2a1a24"/><path d="M228 56 Q232 6 280 4 Q328 6 332 56 Z" fill="#3a2430"/><path d="M228 52 Q280 66 332 52" fill="none" stroke="${GOLD}" stroke-width="7"/></g>
+ <path d="M270 100 q10 6 20 0" stroke="#a5544a" stroke-width="4" fill="none" stroke-linecap="round"/></svg>`}
+const RAZORSVG=`<svg width="420" height="520" viewBox="0 0 420 520"><defs><linearGradient id="mt" x1="0" x2="1"><stop offset="0" stop-color="#8b6a22"/><stop offset=".45" stop-color="#f6e08a"/><stop offset="1" stop-color="#9a7428"/></linearGradient><linearGradient id="st" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#e9eef5"/><stop offset="1" stop-color="#7d8aa0"/></linearGradient></defs>
+<rect x="188" y="170" width="44" height="320" rx="20" fill="url(#mt)"/>${[0,1,2,3,4,5,6,7,8].map(i=>`<rect x="188" y="${230+i*28}" width="44" height="6" fill="rgba(60,40,0,.35)"/>`).join('')}
+<rect x="170" y="150" width="80" height="34" rx="10" fill="url(#mt)"/><path d="M60 98 Q210 60 360 98 L360 134 Q210 100 60 134 Z" fill="url(#mt)"/><path d="M78 128 Q210 94 342 128 L342 144 Q210 112 78 144 Z" fill="url(#st)"/><rect x="198" y="100" width="24" height="60" rx="8" fill="url(#mt)"/></svg>`;
+// ---------- сцены ----------
+mk('hook',r=>{const ray=el(r,'abs','','left:-300px;top:200px;width:1680px;height:1680px;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(230,185,92,.11) 0 7deg,transparent 7deg 18deg);mask-image:radial-gradient(circle,#000 20%,transparent 68%);-webkit-mask-image:radial-gradient(circle,#000 20%,transparent 68%)');
+const k=el(r,'abs c','<span style="font:700 30px Inter;letter-spacing:9px;color:'+GOLD+'">ИСТОРИЯ РЕКЛАМЫ · 1915</span>','top:250px');
+const t1=el(r,'abs c','','top:310px;'+SER+'font-weight:700;font-size:150px;color:'+CREAM+';line-height:1;white-space:nowrap');t1.innerHTML='<span class="w">За</span> <span class="w" style="color:'+GOLD+'">60</span> <span class="w">секунд</span>';
+const t2=el(r,'abs c','','top:470px;'+SER+'font-style:italic;font-weight:500;font-size:74px;color:#d9cdb4;line-height:1.1');t2.innerHTML='<span class="w">объясню,</span> <span class="w">как</span> <span class="w">девушек</span><br><span class="w" style="color:'+CRIM+';font-weight:700;font-style:normal;font-size:112px">заставили бриться</span>';
+const rz=el(r,'abs','','left:330px;top:760px;width:420px;height:520px');rz.innerHTML=RAZORSVG;const sh=el(r,'abs','','left:340px;top:1235px;width:400px;height:40px;border-radius:50%;background:radial-gradient(rgba(0,0,0,.5),transparent 70%)');
+const tag=el(r,'abs c','','top:1290px');tag.innerHTML='<span style="display:inline-block;padding:14px 46px;border:4px solid '+GOLD+';border-radius:8px;'+SER+'font-weight:700;font-size:62px;color:'+GOLD+';letter-spacing:4px">НЕ МОДА. РЕКЛАМА.</span>';
+return (lt,dur)=>{ray.style.transform=`rotate(${px(lt*5)}deg)`;ray.style.opacity=tw(lt,0,1);fade(k,lt,0,.6,20);
+t1._w=[...t1.querySelectorAll('.w')];t2._w=[...t2.querySelectorAll('.w')];popWords(t1,lt,.3,.18,.6);popWords(t2,lt,1.4,.2,.6);
+const q=tw(lt,2.6,3.5,E.ob);rz.style.opacity=tw(lt,2.6,3);rz.style.transform=`translateY(${px((1-q)*-300+Math.sin(lt*1.8)*10)}px) rotate(${px((1-q)*-40+Math.sin(lt*1.5)*3)}deg)`;sh.style.opacity=tw(lt,3,3.5);
+const g=tw(lt,dur*.62,dur*.62+.45,E.ob);tag.style.opacity=tw(lt,dur*.62,dur*.62+.2);tag.style.transform=`scale(${px(2.2-1.2*g)}) rotate(${px(-4+4*g)}deg)`}});
+mk('before',r=>{const fr=el(r,'abs','','left:130px;top:300px;width:820px;height:1040px;border-radius:14px;border:3px solid rgba(230,185,92,.6);background:radial-gradient(ellipse at 50% 40%,#5a4630,#241a12);box-shadow:inset 0 0 160px rgba(0,0,0,.8),0 30px 80px rgba(0,0,0,.6);overflow:hidden');
+const yr=el(r,'abs c','','top:250px;'+SER+'font-weight:700;font-size:130px;color:'+GOLD+';line-height:1;text-shadow:0 0 40px rgba(230,185,92,.4)');
+const w=el(r,'abs','','left:260px;top:430px;width:560px;height:820px');
+const calls=[['длинные рукава',150,220,1],['платье до пола',420,520,0],['шляпа',70,300,1]].map((c,i)=>{const e=el(r,'abs','<span style="font:800 32px Inter;color:'+CREAM+';background:rgba(10,8,12,.8);border:2px solid '+GOLD+';border-radius:30px;padding:10px 24px">'+c[0]+'</span>','top:'+(c[1]+430)+'px;'+(c[3]?'left:140px':'right:140px'));return e});
+const ch=el(r,'abs c','<span style="display:inline-block;padding:16px 44px;border-radius:10px;background:'+CRIM+';font:900 40px Inter;letter-spacing:2px">МАССОВОЙ ПРИВЫЧКИ НЕ БЫЛО</span>','top:1360px');
+return (lt,dur)=>{yr.textContent=Math.round(1900+14*tw(lt,0,1.8,E.oc));fr.style.opacity=tw(lt,0,.5);w.style.opacity=tw(lt,.3,.9);w.style.transform=`translateY(${px((1-tw(lt,.3,1,E.oc))*50)}px)`;w.innerHTML=woman({sleeve:1,hem:770,hat:1});
+calls.forEach((c,i)=>{const a=dur*.28+i*.9;c.style.opacity=tw(lt,a,a+.3);c.style.transform=`scale(${px(.8+.2*tw(lt,a,a+.4,E.ob))})`});const a=dur*.7;ch.style.opacity=tw(lt,a,a+.3);ch.style.transform=`translateY(${px((1-tw(lt,a,a+.5,E.ob))*40)}px)`}});
+mk('market',r=>{const t=el(r,'abs c','<span style="'+SER+'font-weight:700;font-size:80px;color:'+CREAM+'">Бритвы Джиллетт</span>','top:240px');
+const rowM=el(r,'abs','','left:90px;top:410px;width:900px;height:200px');rowM.innerHTML=[...Array(10)].map((_,i)=>`<span style="display:inline-block;margin:0 3px;opacity:0;transform:translateY(40px)">${person(GOLD,'#7a5a18',74)}</span>`).join('');
+const rowW=el(r,'abs','','left:90px;top:690px;width:900px;height:200px');rowW.innerHTML=[...Array(10)].map((_,i)=>`<span style="display:inline-block;margin:0 3px;opacity:0;transform:translateY(40px)">${person('rgba(255,255,255,.04)','rgba(241,230,207,.55)',74)}</span>`).join('');
+const lm=el(r,'abs','<span style="font:800 36px Inter;color:'+GOLD+'">МУЖЧИНЫ · покупают</span>','left:100px;top:370px');const lw=el(r,'abs','<span style="font:800 36px Inter;color:#a9a090">ЖЕНЩИНЫ · бритвы нет</span>','left:100px;top:650px');
+const box=el(r,'abs','','left:90px;top:960px;width:900px;height:360px;border-radius:18px;background:linear-gradient(150deg,#2b1218,#150a10);border:3px solid '+GOLD+';box-shadow:0 0 60px rgba(230,185,92,.25);overflow:hidden');
+box.innerHTML='<div style="text-align:center;font:700 32px Inter;letter-spacing:6px;color:'+GOLD+';margin-top:38px">1915 · ПЕРВАЯ БРИТВА ДЛЯ ЖЕНЩИН</div><div style="text-align:center;'+SER+'font-weight:700;font-size:112px;color:'+CREAM+';margin-top:30px;line-height:1">Миледи</div><div style="text-align:center;'+SER+'font-style:italic;font-size:84px;color:'+GOLD+';line-height:1">Декольте</div><div class="shine" style="position:absolute;top:0;left:-300px;width:160px;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.25),transparent);transform:skewX(-20deg)"></div>';
+return (lt,dur)=>{fade(t,lt,0,.5);[rowM,rowW].forEach((row,ri)=>[...row.children].forEach((c,i)=>{const a=(ri?1.4:.3)+i*.12;const p=tw(lt,a,a+.4,E.ob);c.style.opacity=tw(lt,a,a+.2);c.style.transform=`translateY(${px((1-p)*40)}px)`}));fade(lm,lt,.3);fade(lw,lt,1.4);
+const a=dur*.55;box.style.opacity=tw(lt,a,a+.3);box.style.transform=`scale(${px(.8+.2*tw(lt,a,a+.5,E.ob))})`;box.querySelector('.shine').style.left=px(-300+1500*tw(lt,a+.5,a+1.6,E.io))+'px'}});
+mk('ad',r=>{const pg=el(r,'abs','','left:120px;top:280px;width:840px;height:1060px;background:linear-gradient(135deg,#f3e7cd,#e4d2ad);border-radius:6px;box-shadow:0 40px 100px rgba(0,0,0,.7)');
+pg.innerHTML='<div style="position:absolute;inset:18px;border:3px double #8a6d3a"></div><div style="position:absolute;left:0;right:0;top:46px;text-align:center;'+SER+'font-weight:700;font-size:64px;color:#2b1d0a;letter-spacing:3px">HARPER\'S BAZAAR</div><div style="position:absolute;left:0;right:0;top:122px;text-align:center;font:700 24px Inter;letter-spacing:8px;color:#8a6d3a">1915</div><div style="position:absolute;left:60px;right:60px;top:170px;height:3px;background:#2b1d0a"></div>';
+const ill=el(pg,'abs','','left:560px;top:230px;width:220px;height:320px');ill.innerHTML=woman({sleeve:0,hem:640,hat:0}).replace('width="560" height="820"','width="220" height="320"').replace(/<g opacity="0">/,'<g opacity="0">');
+const q=el(pg,'abs','','left:60px;top:230px;width:480px;'+SER+'font-weight:700;font-size:62px;line-height:1.12;color:#2b1d0a');
+const mk2=el(pg,'abs','','left:60px;top:650px;width:720px;'+SER+'font-weight:700;font-size:78px;line-height:1.1;color:#2b1d0a');mk2.innerHTML='убрать <span id="hl" style="position:relative;color:'+CRIM+'">неприличные<span id="ul" style="position:absolute;left:0;bottom:-4px;height:8px;width:0;background:'+CRIM+'"></span></span> волосы';
+const st=el(pg,'abs','<span style="'+SER+'font-weight:700;font-size:70px;color:'+CRIM+';border:8px solid '+CRIM+';border-radius:10px;padding:2px 26px;letter-spacing:3px">ПРОБЛЕМА</span>','left:190px;top:890px');
+const fn=el(pg,'abs','<span style="font:600 22px Inter;color:#6f5a30">пересказ рекламы Gillette, 1915</span>','left:60px;top:1000px');
+const txt='Летнее платье и танцы требуют';
+return (lt,dur)=>{const p=tw(lt,0,.8,E.ob);pg.style.opacity=tw(lt,0,.3);pg.style.transform=`rotate(${px(-2.5+Math.sin(lt)*.5)}deg) scale(${px(.85+.15*p)})`;
+const n=Math.floor(clamp((lt-.9)*18,0,txt.length));q.textContent=txt.slice(0,n);mk2.style.opacity=tw(lt,2.6,3);const ul=mk2.querySelector('#ul');ul.style.width=px(100*tw(lt,dur*.5,dur*.5+.6,E.oc))+'%';
+const sp=tw(lt,dur*.62,dur*.62+.4,E.ob);st.style.opacity=tw(lt,dur*.62,dur*.62+.15);st.style.transform=`rotate(-9deg) scale(${px(3-2*sp)})`;ill.style.opacity=tw(lt,.8,1.3)}});
+mk('fashion',r=>{const tl=el(r,'abs','','left:110px;top:270px;width:860px;height:120px');tl.innerHTML='<div style="position:absolute;left:0;right:0;top:36px;height:6px;background:rgba(255,255,255,.14);border-radius:3px"></div><div id="tf" style="position:absolute;left:0;top:36px;height:6px;width:0;background:'+GOLD+';border-radius:3px;box-shadow:0 0 18px '+GOLD+'"></div>'+[['1914',0],['1915',430],['1920-е',860]].map(a=>`<div style="position:absolute;left:${a[1]-60}px;top:0;width:120px;text-align:center;${SER}font-weight:700;font-size:44px;color:${CREAM}">${a[0]}</div><div style="position:absolute;left:${a[1]-14}px;top:26px;width:28px;height:28px;border-radius:50%;background:#14080c;border:5px solid ${GOLD}"></div>`).join('');
+const w=el(r,'abs','','left:260px;top:430px;width:560px;height:820px');
+const lab=el(r,'abs c','','top:1290px');const lab2=el(r,'abs c','','top:1290px');
+lab.innerHTML='<span style="display:inline-block;padding:16px 40px;border-radius:40px;background:rgba(240,230,207,.1);border:3px solid '+GOLD+';font:800 44px Inter;color:'+GOLD+'">рукава короче → подмышки</span>';lab2.innerHTML='<span style="display:inline-block;padding:16px 40px;border-radius:40px;background:rgba(208,42,69,.18);border:3px solid '+CRIM+';font:800 44px Inter;color:#ff8a9a">юбки короче → ноги</span>';
+return (lt,dur)=>{const a=tw(lt,.8,2.8,E.io),b=tw(lt,3.2,5.6,E.io);tl.querySelector('#tf').style.width=px(860*(a*.5+b*.5))+'px';tl.style.opacity=tw(lt,0,.4);w.style.opacity=tw(lt,.2,.6);w.innerHTML=woman({sleeve:1-a,hem:770-290*b,hat:1-a});
+lab.style.opacity=tw(lt,2.6,3)*(1-tw(lt,4.3,4.6));lab2.style.opacity=tw(lt,5.0,5.4);lab2.style.transform=`scale(${px(.8+.2*tw(lt,5,5.6,E.ob))})`}});
+mk('formula',r=>{const mkc=(txt,sub,col,top)=>el(r,'abs card','<div style="text-align:center;'+SER+'font-weight:700;font-size:92px;margin-top:34px;color:'+col+'">'+txt+'</div><div style="text-align:center;font:700 34px Inter;color:#c8bda6;margin-top:6px">'+sub+'</div>','left:140px;top:'+top+'px;width:800px;height:240px;border-color:'+col+';background:linear-gradient(160deg,rgba(40,20,28,.95),rgba(20,10,16,.95))');
+const a=mkc('СТЫД','«с волосами — неприлично»',CRIM,330),b=mkc('РЕШЕНИЕ','«вот бритва»',TEAL,700),c=mkc('ПРОДАЖА','дело сделано',GOLD,1070);
+const ln=el(r,'abs','','left:538px;top:570px;width:4px;height:0;background:linear-gradient('+CRIM+','+TEAL+')');const ln2=el(r,'abs','','left:538px;top:940px;width:4px;height:0;background:linear-gradient('+TEAL+','+GOLD+')');
+return (lt)=>{[a,b,c].forEach((e,i)=>{const t0=.3+i*1.6,p=tw(lt,t0,t0+.6,E.ob);e.style.opacity=tw(lt,t0,t0+.25);e.style.transform=`translateY(${px((1-p)*60)}px) scale(${px(.9+.1*p)})`});ln.style.height=px(130*tw(lt,1.1,1.8,E.oc))+'px';ln2.style.height=px(130*tw(lt,2.7,3.4,E.oc))+'px';c.style.boxShadow=`0 0 ${px(30+30*Math.sin(lt*4)*tw(lt,3.4,3.6))}px rgba(230,185,92,.55)`}});
+mk('defend',r=>{const w=el(r,'abs c','','top:380px;'+SER+'font-weight:700;font-size:260px;color:'+CREAM+';line-height:1');w.textContent='«надо»';
+const gl=el(r,'abs','','left:0;top:360px;width:330px;height:330px;border-radius:50%;border:12px solid '+GOLD+';background:rgba(230,185,92,.12);box-shadow:0 0 60px rgba(230,185,92,.5),inset 0 0 40px rgba(255,255,255,.2)');const gh=el(r,'abs','','left:0;top:0;width:16px;height:150px;background:'+GOLD+';border-radius:8px;transform-origin:50% 0');
+const q=el(r,'abs c','','top:760px;'+SER+'font-style:italic;font-weight:500;font-size:84px;color:#d9cdb4');q.textContent='откуда оно взялось?';
+const c=el(r,'abs card','<div style="padding:40px;text-align:center;'+SER+'font-weight:700;font-size:78px;line-height:1.1;color:'+CREAM+'">Решать тебе.<br><span style="color:'+GOLD+'">Знать — тоже.</span></div>','left:110px;top:980px;width:860px;height:320px;border-color:'+GOLD+';background:linear-gradient(160deg,rgba(40,20,28,.95),rgba(20,10,16,.95))');
+return (lt,dur)=>{const p=tw(lt,0,.7,E.ob);w.style.opacity=tw(lt,0,.3);w.style.transform=`scale(${px(.7+.3*p)})`;const gx=130+620*tw(lt,.8,2.6,E.io);gl.style.opacity=tw(lt,.8,1.1);gl.style.transform=`translate(${px(gx)}px,${px(Math.sin(lt*2)*8)}px)`;gh.style.opacity=gl.style.opacity;gh.style.transform=`translate(${px(gx+300)}px,${px(660)}px) rotate(-40deg)`;fade(q,lt,2.2,2.8);const u=tw(lt,dur*.55,dur*.55+.6,E.ob);c.style.opacity=tw(lt,dur*.55,dur*.55+.25);c.style.transform=`scale(${px(.85+.15*u)})`}});
+mk('end',r=>{const bm=el(r,'abs','','left:420px;top:330px;width:240px;height:320px');bm.innerHTML='<svg width="240" height="320" viewBox="0 0 240 320"><path d="M20 10 H220 V300 L120 230 L20 300 Z" fill="rgba(230,185,92,.15)" stroke="'+GOLD+'" stroke-width="12" stroke-linejoin="round" style="filter:drop-shadow(0 0 24px '+GOLD+')"/></svg>';
+const t=el(r,'abs c','СОХРАНИ','top:690px;'+SER+'font-weight:700;font-size:200px;color:'+CREAM+';line-height:1');const s=el(r,'abs c','чтобы помнить','top:910px;'+SER+'font-style:italic;font-size:80px;color:'+GOLD);
+const b=el(r,'abs c','<span style="display:inline-block;padding:30px 60px;border-radius:70px;background:linear-gradient(90deg,#e6b95c,#c98a2c);color:#1a1000;font:900 48px Inter;box-shadow:0 0 60px rgba(230,185,92,.5)">ПОДПИШИСЬ · МЫСЛИ ВЕКОВ</span>','top:1130px');
+return (lt)=>{const p=tw(lt,0,.7,E.ob);bm.style.transform=`translateY(${px((1-p)*-200)}px) scale(${px(.6+.4*p)})`;bm.style.opacity=tw(lt,0,.3);const q=tw(lt,.5,1.1,E.ob);t.style.transform=`scale(${px(.6+.4*q)})`;t.style.opacity=tw(lt,.5,.8);fade(s,lt,1.3);const pb=tw(lt,3,3.6,E.ob);b.style.opacity=tw(lt,3,3.2);b.style.transform=`scale(${px((.6+.4*pb)*(1+.03*Math.sin(lt*6)))})`}});
 // ---------- кадр ----------
 function sceneAt(t){let s=TL.scenes.find(x=>t>=x.t0&&t<x.t0+x.dur);return s||TL.scenes[TL.scenes.length-1]}
 window.seek=function(t){const s=sceneAt(t),lt=t-s.t0,dur=s.dur;
@@ -105,6 +156,6 @@ document.getElementById('hudfill').style.width=px(100*t/TL.dur)+'%';
 // субтитры (пословно)
 const sb=document.getElementById('subs');const cur=(TL.subs||[]).find(c=>t>=c[0]&&t<=c[1]);
 if(cur){const ws=cur[2].split(' ');const wgt=ws.map(w=>Math.max(1,(w.match(/[аеёиоуыэюя]/gi)||[]).length));const tot=wgt.reduce((a,b)=>a+b,0);let acc=0,idx=0;const u=(t-cur[0])/(cur[1]-cur[0]);for(let i=0;i<ws.length;i++){if(u>=acc/tot)idx=i;acc+=wgt[i]}
-sb.innerHTML='<span class="sp">'+ws.map((w,i)=>'<span style="color:'+(i==idx?'#ffc83d':'#fff')+';display:inline-block;margin:0 7px;text-shadow:'+(i==idx?'0 0 24px rgba(255,200,60,.7)':'none')+'">'+w+'</span>').join(' ')+'</span>'}else sb.innerHTML='';
+sb.innerHTML='<span class="sp">'+ws.map((w,i)=>'<span style="color:'+(i==idx?'#e6b95c':'#f1e6cf')+';display:inline-block;margin:0 7px;text-shadow:'+(i==idx?'0 0 24px rgba(230,185,92,.7)':'none')+'">'+w+'</span>').join(' ')+'</span>'}else sb.innerHTML='';
 }
 </script></body></html>
