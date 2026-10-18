@@ -9,7 +9,11 @@ import build
 FPS = 24; CHROME = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"; TMPF = "/tmp/motion_frames"
 def setup():
     SC, DUR = build.timeline()
-    subs = [[a, b, t] for s in SC for (a, b, t) in s["subs"]]
+    fix = getattr(build._M, "SUBS_FIX", {})
+    def fx(t):
+        for k, v in fix.items(): t = t.replace(k, v)
+        return t
+    subs = [[a, b, fx(t)] for s in SC for (a, b, t) in s["subs"]]
     return SC, DUR, dict(dur=DUR, scenes=[dict(name=s["name"], t0=s["t0"], dur=s["dur"]) for s in SC], subs=subs)
 def worker(args):
     ids, tl = args

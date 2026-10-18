@@ -1,6 +1,7 @@
 """«Как женщин заставили брить ноги» — реклама Gillette 1915 («Milady Décolleté», Harper's Bazaar). Моушен: STAGE=stage_razor.html."""
 HEADER = "ИСТОРИЯ · КАК НАМ ВНУШАЮТ"
 SCENES = {}
+SUBS_FIX = {"Джиллетт": "Gillette", "Харперс": "Harper's", "Базар": "Bazaar"}
 VOICE = dict(mystic=True, rate=.88)
 SCRIPT = [
  ("hook",   "За минуту я объясню, как девушек заставили бриться. Это не мода. Это реклама."),
