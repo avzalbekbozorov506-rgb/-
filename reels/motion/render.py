@@ -14,7 +14,7 @@ def setup():
         for k, v in fix.items(): t = t.replace(k, v)
         return t
     subs = [[a, b, fx(t)] for s in SC for (a, b, t) in s["subs"]]
-    return SC, DUR, dict(dur=DUR, scenes=[dict(name=s["name"], t0=s["t0"], dur=s["dur"]) for s in SC], subs=subs)
+    return SC, DUR, dict(header=getattr(build, 'HEADER', ''), dur=DUR, scenes=[dict(name=s["name"], t0=s["t0"], dur=s["dur"]) for s in SC], subs=subs)
 def worker(args):
     ids, tl = args
     from playwright.sync_api import sync_playwright
