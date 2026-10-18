@@ -53,16 +53,16 @@ mk('hook',r=>{const tt=paper(r,'mustard','left:200px;top:420px;width:680px;heigh
 const nm=label(r,'ЧАСТЬ 2','red','left:380px;top:600px;font-size:54px;transform:rotate(1.5deg)');
 const th=el(r,'abs','','left:530px;top:640px;width:4px;height:520px;background:#e8d9b4');const sp=el(r,'abs','','left:440px;top:1060px;width:200px;height:240px;transform-origin:100px -420px;filter:drop-shadow(4px 8px 6px rgba(0,0,0,.55))');
 sp.innerHTML='<svg width="200" height="240" viewBox="0 0 200 240"><rect x="30" y="20" width="140" height="26" rx="8" fill="#d9bd88"/><rect x="30" y="196" width="140" height="26" rx="8" fill="#d9bd88"/><rect x="58" y="46" width="84" height="150" fill="#b9332a"/>'+[...Array(10)].map((_,i)=>`<path d="M58 ${56+i*14} L142 ${62+i*14}" stroke="#7d1f19" stroke-width="3"/>`).join('')+'</svg>';
-const q=label(r,'ОТКУДА ЭТО?','dark','left:320px;top:1450px;font-size:54px;transform:rotate(-2deg)');
+const q=label(r,'ОТКУДА ЭТО?','dark','left:320px;top:1600px;font-size:54px;transform:rotate(-2deg)');
 return (lt)=>{pop(tt,lt,.2,-2);pop(nm,lt,.7,1.5);th.style.height=px(480*tw(lt,.4,1.2))+'px';sp.style.opacity=tw(lt,1,1.3);sp.style.transform=`rotate(${px(Math.sin(lt*2.4)*12)}deg) scale(1.6)`;pop(q,lt,3.4,-2)}});
 mk('war',r=>{const bed=paper(r,'kraft','left:120px;top:1000px;width:840px;height:300px');const pil=paper(r,'','left:150px;top:960px;width:230px;height:110px;border-radius:30px');
-const d=doll(r,{x:560,y:1130,s:1.2,face:'wow',col:'#ece6d6'});d.pose({rot:-90,dx:140,dy:40});
+const d=doll(r,{x:560,y:1130,s:1.2,face:'wow',col:'#ece6d6'});d.pose({rot:-90,dx:28,dy:40});
 const bl=paper(r,'green','left:360px;top:1010px;width:600px;height:240px;transform:rotate(-1deg)');
 const cl=el(r,'abs','','left:560px;top:420px;width:480px;height:340px');cl.innerHTML='<svg width="480" height="340" viewBox="0 0 480 340"><g fill="#ece6d6" stroke="rgba(0,0,0,.2)" stroke-width="3"><circle cx="120" cy="190" r="86"/><circle cx="230" cy="130" r="100"/><circle cx="350" cy="190" r="90"/><rect x="60" y="190" width="380" height="80" rx="40"/></g><circle cx="90" cy="300" r="14" fill="#ece6d6"/><circle cx="60" cy="334" r="8" fill="#ece6d6"/></svg>';
 const ex=[0,1,2].map(i=>el(r,'abs','<svg width="120" height="120" viewBox="-60 -60 120 120"><path d="M0 -58 L14 -20 L56 -28 L26 2 L52 40 L10 26 L-6 60 L-20 22 L-58 30 L-30 -4 L-50 -42 L-12 -28Z" fill="#e8452c" stroke="#7d1f19" stroke-width="4"/></svg>','left:'+(640+i*90)+'px;top:'+(520+(i%2)*60)+'px'));
 const y=label(r,'1918','mustard','left:130px;top:430px;font-size:76px;transform:rotate(-3deg)');
 const n1=paper(r,'','left:90px;top:560px;width:430px;height:200px;transform:rotate(-2deg)','<div class="ink" style="padding:24px;font-size:38px;line-height:1.2">СОН = ИСПОЛНЕНИЕ ЖЕЛАНИЯ</div>');const x=el(r,'abs','<svg width="430" height="200"><path d="M20 20 L410 180 M410 20 L20 180" stroke="#e8452c" stroke-width="16" stroke-linecap="round"/></svg>','left:90px;top:560px;transform:rotate(-2deg)');
-return (lt,dur)=>{slide(bed,lt,.1,0,200);slide(pil,lt,.2,0,200);slide(bl,lt,.5,0,200,-1);d.pose({rot:-90,dx:140,dy:40+Math.sin(lt*3)*4});pop(y,lt,.4,-3);
+return (lt,dur)=>{slide(bed,lt,.1,0,200);slide(pil,lt,.2,0,200);slide(bl,lt,.5,0,200,-1);d.pose({rot:-90,dx:28,dy:40+Math.sin(lt*3)*4});pop(y,lt,.4,-3);
 cl.style.opacity=tw(lt,dur*.2,dur*.2+.3);cl.style.transform=`translateY(${px(Math.sin(lt*2)*8)}px)`;ex.forEach((e,i)=>{const a=dur*.28+i*dur*.09;pop(e,lt,a,i*12-10)});slide(n1,lt,dur*.55,-300,0,-2);x.style.opacity=tw(lt,dur*.72,dur*.78);x.style.strokeDasharray=''}});
 mk('spool',r=>{const floor=paper(r,'dark','left:0;top:1380px;width:1080px;height:300px');const door=paper(r,'kraft','left:60px;top:740px;width:260px;height:640px');pin(door,80,760);
 const bed=paper(r,'blue','left:470px;top:1100px;width:560px;height:280px;z-index:3');
@@ -93,7 +93,7 @@ const t=el(r,'abs','','left:510px;top:520px;width:480px;height:480px;border-radi
 const bt=label(r,'ВМЕСТЕ','mustard','left:400px;top:900px;font-size:62px;transform:rotate(-3deg)');
 const br=el(r,'abs','','left:230px;top:1110px;width:620px;height:340px;filter:drop-shadow(5px 9px 7px rgba(0,0,0,.55))');br.innerHTML='<svg width="620" height="340" viewBox="0 0 620 340"><path d="M40 240 Q10 120 140 80 Q310 20 480 80 Q610 120 580 240 Q570 300 500 300 H120 Q50 300 40 240Z" fill="#c8893f"/><path d="M150 100 Q160 150 200 130 M300 70 Q310 130 360 110 M440 100 Q440 150 490 130" stroke="#8a5a22" stroke-width="10" fill="none" stroke-linecap="round"/><circle id="bite" cx="590" cy="110" r="0" fill="#211e1a"/></svg>';
 const cp=label(r,'ЕДА: РАЗРУШИТЬ РАДИ ЖИЗНИ','dark','left:130px;top:1500px;font-size:42px;transform:rotate(1deg)');
-return (lt,dur)=>{const m=tw(lt,.2,dur*.4,E.io);e.style.transform=`translateX(${px(m*60)}px)`;t.style.transform=`translateX(${px(-m*60)}px)`;t.style.opacity=1;pop(bt,lt,dur*.38,-3);const b=tw(lt,dur*.55,dur*.68,E.ob);br.style.opacity=tw(lt,dur*.5,dur*.58);br.querySelector('#bite').setAttribute('r',px(80*b));pop(cp,lt,dur*.72,1)}});
+return (lt,dur)=>{const m=tw(lt,.2,dur*.4,E.io);e.style.transform=`translateX(${px(m*28)}px)`;t.style.transform=`translateX(${px(-m*28)}px)`;t.style.opacity=1;pop(bt,lt,dur*.38,-3);const b=tw(lt,dur*.55,dur*.68,E.ob);br.style.opacity=tw(lt,dur*.5,dur*.58);br.querySelector('#bite').setAttribute('r',px(80*b));pop(cp,lt,dur*.72,1)}});
 mk('einstein',r=>{const ein=doll(r,{x:230,y:1420,s:1.0,face:'wow',hair:1,col:'#ece6d6'});const fr=doll(r,{x:850,y:1420,s:1.0,face:'flat',beard:1,glasses:1,col:'#e7d9c9'});
 const n1=label(r,'ЭЙНШТЕЙН','mustard','left:100px;top:1470px;font-size:34px');const n2=label(r,'ФРЕЙД','mustard','left:760px;top:1470px;font-size:34px');
 const y=label(r,'1932','red','left:410px;top:420px;font-size:80px;transform:rotate(-3deg)');
