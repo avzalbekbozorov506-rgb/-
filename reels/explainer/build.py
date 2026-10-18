@@ -46,6 +46,7 @@ def tts(text):
         _SYN = Synth(Model(model_name="vosk-model-tts-ru-0.9-multi"))
     parts = [p for p in re.split(r"(?<=[.:!?])\s+", text) if p.strip()]; segs = []
     for k, p in enumerate(parts):
+        p = p.replace('«', '').replace('»', '')
         a = np.asarray(_SYN.synth_audio(p, speaker_id=VOICE["speaker"], speech_rate=VOICE["rate"]), np.float32) / 32768
         segs.append(ss.resample_poly(a, SR, 22050).astype(np.float32))
         if k < len(parts) - 1: segs.append(np.zeros(int(SR * .5), np.float32))
