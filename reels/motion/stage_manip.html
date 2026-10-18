@@ -1,0 +1,126 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+*{box-sizing:border-box}html,body{margin:0;background:#050912;overflow:hidden}
+#stage{position:relative;width:1080px;height:1920px;overflow:hidden;font-family:'Inter',sans-serif;color:#fff;background:#070c1c}
+.abs{position:absolute}.c{left:0;width:1080px;text-align:center}
+.blob{position:absolute;border-radius:50%;filter:blur(130px)}
+#grid{position:absolute;inset:0;background-image:linear-gradient(rgba(120,160,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(120,160,255,.07) 1px,transparent 1px);background-size:90px 90px;mask-image:radial-gradient(circle at 50% 40%,#000 20%,transparent 75%)}
+#grain{position:absolute;inset:-100px;opacity:.07;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='300' height='300' filter='url(%23n)'/></svg>")}
+#vig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,transparent 45%,rgba(0,0,0,.65) 100%)}
+.scene{position:absolute;inset:0;will-change:transform,opacity,filter}
+.w{display:inline-block;will-change:transform,opacity,filter}
+.h1{font-weight:900;letter-spacing:-1px;line-height:1.02}
+.glow-g{color:#4dffb0;text-shadow:0 0 40px rgba(60,255,170,.55),0 0 90px rgba(60,255,170,.25)}
+.glow-y{color:#ffc83d;text-shadow:0 0 40px rgba(255,190,50,.5),0 0 90px rgba(255,190,50,.2)}
+.glow-r{color:#ff5468;text-shadow:0 0 40px rgba(255,70,90,.55),0 0 90px rgba(255,70,90,.25)}
+.glow-c{color:#6fd8ff;text-shadow:0 0 40px rgba(80,200,255,.5)}
+.chip{display:inline-block;padding:16px 34px;border-radius:999px;font-weight:800;border:3px solid rgba(255,255,255,.85);background:rgba(10,20,40,.75);backdrop-filter:blur(8px)}
+.win{background:linear-gradient(160deg,#16213f,#0d1630);border:2px solid rgba(110,170,255,.55);border-radius:30px;box-shadow:0 40px 100px rgba(0,0,0,.6),0 0 80px rgba(70,130,255,.25)}
+.bar{height:62px;border-radius:30px 30px 0 0;background:rgba(255,255,255,.07);display:flex;align-items:center;padding:0 26px;gap:12px;font-weight:700;font-size:26px;color:#9fb4d8}
+.dot{width:20px;height:20px;border-radius:50%}
+.card{background:linear-gradient(160deg,rgba(28,40,74,.95),rgba(14,22,46,.95));border-radius:30px;border:3px solid;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+#subpill{position:absolute;right:54px;top:136px;padding:12px 26px;border-radius:30px;background:linear-gradient(90deg,#ffb830,#ff8a30);color:#1a1000;font-weight:900;font-size:26px;box-shadow:0 0 30px rgba(255,170,50,.5)}
+#subs{position:absolute;left:60px;width:960px;top:1500px;text-align:center;font-weight:800;font-size:54px;line-height:1.25}
+#subs .sp{display:inline-block;background:rgba(8,12,24,.62);backdrop-filter:blur(10px);padding:14px 30px;border-radius:30px}
+#hud{position:absolute;left:54px;right:54px;top:64px;font-size:22px;font-weight:700;color:#7f97c4;letter-spacing:2px}
+#hudbar{position:absolute;left:54px;right:54px;top:112px;height:5px;background:rgba(255,255,255,.1);border-radius:3px}
+#hudfill{height:100%;background:linear-gradient(90deg,#4ab0ff,#4dffb0);border-radius:3px;box-shadow:0 0 14px #4ab0ff}
+</style></head><body><div id="stage">
+<div class="blob" id="b1" style="width:900px;height:900px;background:rgba(60,110,255,.38)"></div>
+<div class="blob" id="b2" style="width:800px;height:800px;background:rgba(150,70,255,.3)"></div>
+<div class="blob" id="b3" style="width:700px;height:700px;background:rgba(30,220,160,.2)"></div>
+<div id="grid"></div>
+<div id="scenes"></div>
+<div id="vig"></div><div id="grain"></div>
+<div id="hud">КАК РАБОТАЕТ МАНИПУЛЯЦИЯ</div><div id="hudbar"><div id="hudfill"></div></div>
+<div id="subpill">+ ПОДПИСАТЬСЯ</div><div id="subs"></div>
+</div>
+<script>
+const TL=window.TL||{scenes:[],dur:1};
+const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
+const E={lin:x=>x,oc:x=>1-Math.pow(1-x,3),oe:x=>x==1?1:1-Math.pow(2,-10*x),io:x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2,
+ob:x=>{const c=1.70158,d=c+1;return 1+d*Math.pow(x-1,3)+c*Math.pow(x-1,2)},
+oel:x=>x==0||x==1?x:Math.pow(2,-9*x)*Math.sin((x*10-.75)*(2*Math.PI/3))+1};
+const tw=(t,a,b,f=E.oc)=>f(clamp((t-a)/(b-a)));
+const px=(n)=>Math.round(n*100)/100;
+function el(parent,cls,html,css){const d=document.createElement('div');d.className=cls||'';if(html!=null)d.innerHTML=html;if(css)d.style.cssText=css;parent.appendChild(d);return d}
+function words(parent,text,css,cls){const d=el(parent,'abs c h1 '+(cls||''),'',css);d._w=text.split(' ').map(w=>{const s=document.createElement('span');s.className='w';s.textContent=w;d.appendChild(s);d.appendChild(document.createTextNode(' '));return s});return d}
+function popWords(d,lt,t0,step=.09,dur=.5){d._w.forEach((s,i)=>{const p=tw(lt,t0+i*step,t0+i*step+dur,E.ob);const o=tw(lt,t0+i*step,t0+i*step+.25);s.style.opacity=o;s.style.transform=`translateY(${px((1-p)*70)}px) scale(${px(.6+.4*p)})`;s.style.filter=`blur(${px((1-o)*14)}px)`})}
+const nf=n=>Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+const S={};const root=document.getElementById('scenes');
+function mk(name,fn){const r=el(root,'scene','');r.style.display='none';S[name]={r,upd:fn(r)};}
+// ---------- сцены: манипуляция ----------
+const bar=(r,top,label,col,txt)=>{const w=el(r,'abs','','left:110px;top:'+top+'px;width:860px;height:150px');el(w,'abs','<span style="font:800 36px Inter;color:#c8d4ee">'+label+'</span>','left:0;top:0');
+const bg=el(w,'abs','','left:0;top:60px;width:860px;height:64px;border-radius:32px;background:rgba(255,255,255,.1)');const f=el(bg,'abs','','left:0;top:0;height:64px;width:0;border-radius:32px;background:'+col+';box-shadow:0 0 30px '+col);
+const v=el(w,'abs h1','','right:0;top:0;font-size:48px;color:'+col+';text-align:right');return {w,f,v,set:(p,max,s)=>{f.style.width=px(860*max*p)+'px';v.textContent=s;}}};
+const fade=(e,lt,a,b=a+.4,dy=40)=>{const p=tw(lt,a,b,E.oc);e.style.opacity=tw(lt,a,a+.25);e.style.transform=`translateY(${px((1-p)*dy)}px)`};
+mk('hook',r=>{const sv=el(r,'abs','','left:0;top:0;width:1080px;height:1000px');
+sv.innerHTML='<svg width="1080" height="1000"><g id="strs" stroke="#6fd8ff" stroke-width="4" opacity=".8"></g><circle id="hd" r="62" fill="#e8eeff"/><rect id="bd" x="-70" y="0" width="140" height="190" rx="40" fill="#cfe0ff"/></svg>';
+const t1=el(r,'abs c h1 glow-r','ТОБОЙ УПРАВЛЯЮТ','top:1050px;font-size:96px;white-space:nowrap');const t2=el(r,'abs c','а ты думаешь, что решаешь сам','top:1190px;font-size:50px;font-weight:700;color:#c8d4ee');
+const ch=el(r,'abs c','<span class="chip glow-y" style="font-size:60px;border-color:#ffc83d">4 ПРИЁМА МАНИПУЛЯЦИИ</span>','top:1310px');
+const xs=[-230,-80,80,230];
+return (lt)=>{const cx=540+Math.sin(lt*1.6)*40,hy=620+Math.sin(lt*2.2)*14;const dr=tw(lt,0,.8,E.oe);const hd=sv.querySelector('#hd'),bd=sv.querySelector('#bd');hd.setAttribute('cx',cx);hd.setAttribute('cy',hy*dr+(1-dr)*-100);bd.setAttribute('x',cx-70);bd.setAttribute('y',(hy+68)*dr+(1-dr)*-100);
+const g=sv.querySelector('#strs');g.innerHTML=xs.map((x,i)=>{const ax=540+x*1.5+Math.sin(lt*1.3+i)*50;const tx=cx+x*.3;const ty=i<2?hy+90+(i?0:0):hy+90;return `<line x1="${ax}" y1="-10" x2="${tx}" y2="${(i==1||i==2)?hy+85:hy+60+i*10}"/><circle cx="${ax}" cy="40" r="10" fill="#6fd8ff"/>`}).join('');
+fade(t1,lt,.9,1.4,60);t1.style.transform+=` scale(${px(.8+.2*tw(lt,.9,1.4,E.ob))})`;fade(t2,lt,1.8);fade(ch,lt,2.8)}});
+mk('anchor',r=>{const ttl=el(r,'abs c h1 glow-c','1 · ЯКОРЬ','top:250px;font-size:84px');
+const wh=el(r,'abs','','left:340px;top:380px;width:400px;height:400px');wh.innerHTML='<svg width="400" height="400" viewBox="-200 -200 400 400"><g id="wg">'+[...Array(8)].map((_,i)=>`<path d="M0 0 L${190*Math.cos(i*Math.PI/4)} ${190*Math.sin(i*Math.PI/4)} A190 190 0 0 1 ${190*Math.cos((i+1)*Math.PI/4)} ${190*Math.sin((i+1)*Math.PI/4)} Z" fill="${i%2?'#2a3f7a':'#1b2a58'}" stroke="#6fd8ff" stroke-width="3"/>`).join('')+'</g><circle r="70" fill="#0d1630" stroke="#ffc83d" stroke-width="5"/><path d="M-18 -200 L18 -200 L0 -160 Z" fill="#ff5468"/></svg>';
+const num=el(r,'abs c h1 glow-y','','top:510px;font-size:110px;pointer-events:none;left:0;width:1080px');
+const b1=bar(r,850,'ВЫПАЛО 10 → СРЕДНИЙ ОТВЕТ','#6fd8ff'),b2=bar(r,1070,'ВЫПАЛО 65 → СРЕДНИЙ ОТВЕТ','#ff5468');
+const cap=el(r,'abs c','число из воздуха сдвинуло мнение','top:1290px;font-size:46px;font-weight:700;color:#ffc83d');
+return (lt,dur)=>{const u=lt/dur;fade(ttl,lt,0,.5);wh.style.opacity=tw(lt,.2,.6);
+const s1=tw(u,.06,.24,E.oc),s2=tw(u,.44,.62,E.oc);const ang=s1*1080+s2*1260;wh.querySelector('#wg').setAttribute('transform','rotate('+px(ang)+')');
+const spinning=(u>.06&&u<.24)||(u>.44&&u<.62);const val=u<.24?10:u<.62?(u<.44?10:65):65;num.textContent=u<.06?'':(spinning&&Math.floor(lt*14)%2?String(Math.floor(lt*7919)%90+5):String(val));
+b1.w.style.opacity=tw(u,.26,.32);b1.set(tw(u,.28,.42,E.oc),.5,u<.28?'':Math.round(25*tw(u,.28,.42,E.oc))+'%');
+b2.w.style.opacity=tw(u,.64,.7);b2.set(tw(u,.66,.82,E.oc),.9,u<.66?'':Math.round(45*tw(u,.66,.82,E.oc))+'%');fade(cap,lt,dur*.86)}});
+mk('scarce',r=>{const ttl=el(r,'abs c h1 glow-c','2 · ДЕФИЦИТ','top:250px;font-size:84px');
+const card=el(r,'abs card','<div style="text-align:center;font:800 40px Inter;color:#9fb4d8;margin-top:30px">ТОЛЬКО СЕГОДНЯ</div>','left:140px;top:400px;width:800px;height:400px;border-color:#ff5468');
+const left=el(card,'abs c h1 glow-r','','left:0;top:90px;width:800px;font-size:150px');const lab=el(card,'abs','осталось штук','left:0;top:280px;width:800px;text-align:center;font:700 44px Inter;color:#c8d4ee');
+const tm=el(r,'abs c h1','','top:880px;font-size:120px;font-variant-numeric:tabular-nums');const tl=el(r,'abs c','акция до полуночи','top:1030px;font-size:44px;font-weight:700;color:#c8d4ee');
+const f=bar(r,1120,'СТРАХ УПУСТИТЬ','#ff5468'),m=bar(r,1290,'ВРЕМЯ ПОДУМАТЬ','#4dffb0');
+return (lt,dur)=>{fade(ttl,lt,0,.5);card.style.opacity=tw(lt,.2,.6);card.style.transform=`scale(${px(.8+.2*tw(lt,.2,.8,E.ob))}) rotate(${px(Math.sin(lt*30)*(lt>2.5&&lt<3?2:0))}deg)`;
+left.textContent=Math.max(2,9-Math.floor(tw(lt,.8,3.2,E.lin)*7));tm.textContent='00:'+String(Math.max(0,59-Math.floor(lt*4))).padStart(2,'0');tm.className='abs c h1 '+(Math.floor(lt*2)%2?'glow-r':'');tl.style.opacity=tw(lt,.6,1);
+f.w.style.opacity=tw(lt,3,3.3);f.set(tw(lt,3.2,4.6,E.oe),1,'');m.w.style.opacity=tw(lt,3,3.3);m.set(tw(lt,3.2,5,E.oc)*0+.12*tw(lt,3.2,3.6),1,'')}});
+mk('crowd',r=>{const ttl=el(r,'abs c h1 glow-c','3 · ТОЛПА','top:250px;font-size:84px');
+const row=el(r,'abs','','left:0;top:430px;width:1080px;height:320px');const ppl=[...Array(6)].map((_,i)=>{const e=el(row,'abs','<div style="width:110px;height:110px;border-radius:50%;background:#8aa0cf;margin:0 auto"></div><div style="width:130px;height:150px;border-radius:50px 50px 20px 20px;background:#5a74b3;margin:8px auto 0"></div><div class="bt" style="text-align:center;font:900 64px Inter;margin-top:-250px;color:#fff;position:relative;top:-70px"></div>','left:'+(20+i*140)+'px;top:80px;width:150px');return e});
+const me=el(row,'abs','<div style="width:110px;height:110px;border-radius:50%;background:#6fd8ff;margin:0 auto;box-shadow:0 0 40px #6fd8ff"></div><div style="width:130px;height:150px;border-radius:50px 50px 20px 20px;background:#2f9fd6;margin:8px auto 0"></div>','left:880px;top:80px;width:150px;display:none');
+const bubble=el(r,'abs c h1','','top:810px;font-size:150px');const q=el(r,'abs c','Какая линия длиннее? Ответ очевиден.','top:790px;font-size:40px;font-weight:700;color:#9fb4d8');
+const ring=el(r,'abs','','left:340px;top:960px;width:400px;height:400px');ring.innerHTML='<svg width="400" height="400" viewBox="-200 -200 400 400"><circle r="150" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="40"/><circle id="rg" r="150" fill="none" stroke="#ff5468" stroke-width="40" stroke-linecap="round" transform="rotate(-90)" style="filter:drop-shadow(0 0 16px #ff5468)"/></svg>';
+const pc=el(r,'abs c h1 glow-r','','top:1100px;font-size:96px');const cp=el(r,'abs c','хоть раз согласились с неверным ответом','top:1390px;font-size:40px;font-weight:700;color:#c8d4ee');
+return (lt,dur)=>{fade(ttl,lt,0,.5);ppl.forEach((e,i)=>{const p=tw(lt,.3+i*.1,.8+i*.1,E.ob);e.style.opacity=tw(lt,.3+i*.1,.5+i*.1);e.style.transform=`scale(${px(p)})`;e.querySelector('.bt').textContent=lt>1.6+i*.25?'С':'';e.querySelector('.bt').style.color='#ff5468'});
+me.style.display='block';const pm=tw(lt,.8,1.3,E.ob);me.style.opacity=tw(lt,.8,1.0);me.style.transform=`scale(${px(pm)})`;
+q.style.opacity=tw(lt,.3,.7)*(1-tw(lt,3.2,3.5));bubble.style.opacity=0;
+const k=tw(lt,3.2,4.4,E.oc);ring.style.opacity=tw(lt,3.2,3.6);ring.querySelector('#rg').setAttribute('stroke-dasharray',px(942*.75*k)+' 942');pc.textContent=Math.round(75*k)+'%';pc.style.opacity=tw(lt,3.2,3.6);fade(cp,lt,4.2)}});
+mk('door',r=>{const ttl=el(r,'abs c h1 glow-c','4 · МАЛЕНЬКАЯ ПРОСЬБА','top:250px;font-size:72px;white-space:nowrap');
+const st=el(r,'abs','','left:110px;top:400px;width:860px;height:360px');st.innerHTML='<svg width="860" height="360"><path d="M20 340 H260 V250 H500 V150 H840 V30" fill="none" stroke="#6fd8ff" stroke-width="10" stroke-linejoin="round" id="sp" style="filter:drop-shadow(0 0 14px #6fd8ff)"/><circle id="dt" r="20" fill="#ffc83d"/></svg>';
+const l1=el(r,'abs','<span style="font:800 34px Inter;color:#ffc83d">сначала — маленькая просьба</span>','left:140px;top:770px');const l2=el(r,'abs','<span style="font:800 34px Inter;color:#ff5468">потом — огромный щит на газоне</span>','left:140px;top:830px');
+const a=bar(r,940,'СРАЗУ ПРОСЯТ ЩИТ','#ff5468'),b=bar(r,1140,'ПОСЛЕ МАЛЕНЬКОЙ ПРОСЬБЫ','#4dffb0');
+return (lt,dur)=>{const u=lt/dur;fade(ttl,lt,0,.5);const L=1250;const sp=st.querySelector('#sp');sp.style.strokeDasharray=L;const pr=tw(lt,.3,2.5,E.io);sp.style.strokeDashoffset=px(L*(1-pr));
+const pts=[[20,340],[260,340],[260,250],[500,250],[500,150],[840,150],[840,30]];let rem=pr*L,x=20,y=340;for(let i=1;i<pts.length&&rem>0;i++){const dx=pts[i][0]-pts[i-1][0],dy=pts[i][1]-pts[i-1][1],len=Math.abs(dx)+Math.abs(dy);const s=Math.min(rem,len);x=pts[i-1][0]+dx*s/len;y=pts[i-1][1]+dy*s/len;rem-=s}
+const dt=st.querySelector('#dt');dt.setAttribute('cx',x);dt.setAttribute('cy',y);fade(l1,lt,.8);fade(l2,lt,2.2);
+a.w.style.opacity=tw(u,.45,.52);a.set(tw(u,.5,.64,E.oc),.2,Math.round(17*tw(u,.5,.64,E.oc))+'%');b.w.style.opacity=tw(u,.64,.7);b.set(tw(u,.68,.88,E.oc),.8,Math.round(76*tw(u,.68,.88,E.oc))+'%')}});
+mk('defend',r=>{const sv=el(r,'abs','','left:340px;top:280px;width:400px;height:460px');sv.innerHTML='<svg width="400" height="460" viewBox="0 0 400 460"><path id="sh" d="M200 10 L380 70 V230 C380 340 290 410 200 450 C110 410 20 340 20 230 V70 Z" fill="rgba(77,255,176,.12)" stroke="#4dffb0" stroke-width="10" style="filter:drop-shadow(0 0 24px #4dffb0)"/><path id="ck" d="M110 230 L180 300 L300 160" fill="none" stroke="#4dffb0" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const t=el(r,'abs c h1 glow-g','КАК ЗАЩИТИТЬСЯ','top:790px;font-size:90px');
+const q1=el(r,'abs card','<div style="padding:34px;font:900 52px Inter;text-align:center">ЧЕГО ОТ МЕНЯ ХОТЯТ?</div>','left:110px;top:960px;width:860px;height:140px;border-color:#6fd8ff');const q2=el(r,'abs card','<div style="padding:34px;font:900 52px Inter;text-align:center">ПОЧЕМУ ИМЕННО СЕЙЧАС?</div>','left:110px;top:1140px;width:860px;height:140px;border-color:#ffc83d');
+return (lt)=>{const p=tw(lt,0,.7,E.ob);sv.style.transform=`scale(${px(p)})`;sv.style.opacity=tw(lt,0,.3);const ck=sv.querySelector('#ck');ck.style.strokeDasharray=330;ck.style.strokeDashoffset=px(330*(1-tw(lt,.5,1.1)));fade(t,lt,.8);
+[q1,q2].forEach((q,i)=>{const a=1.8+i*1.3,pp=tw(lt,a,a+.6,E.ob);q.style.opacity=tw(lt,a,a+.2);q.style.transform=`translateX(${px((1-pp)*(i?400:-400))}px)`})}});
+mk('end',r=>{const bm=el(r,'abs','','left:420px;top:330px;width:240px;height:320px');bm.innerHTML='<svg width="240" height="320" viewBox="0 0 240 320"><path d="M20 10 H220 V300 L120 230 L20 300 Z" fill="rgba(255,200,60,.15)" stroke="#ffc83d" stroke-width="12" stroke-linejoin="round" style="filter:drop-shadow(0 0 24px #ffc83d)"/></svg>';
+const t=el(r,'abs c h1 glow-y','СОХРАНИ','top:700px;font-size:160px');const s=el(r,'abs c','чтобы не попасться','top:900px;font-size:64px;font-weight:700;color:#e8eeff');
+const b=el(r,'abs c','<span style="display:inline-block;padding:30px 60px;border-radius:70px;background:linear-gradient(90deg,#ffb830,#ff8a30);color:#1a1000;font:900 50px Inter;box-shadow:0 0 60px rgba(255,170,50,.55)">ПОДПИШИСЬ · ЛЮДИ И ВЛАСТЬ</span>','top:1130px');
+return (lt)=>{const p=tw(lt,0,.7,E.ob);bm.style.transform=`translateY(${px((1-p)*-200)}px) scale(${px(.6+.4*p)})`;bm.style.opacity=tw(lt,0,.3);const q=tw(lt,.5,1.1,E.ob);t.style.transform=`scale(${px(.5+.5*q)})`;t.style.opacity=tw(lt,.5,.8);fade(s,lt,1.3);
+const pb=tw(lt,3.0,3.6,E.ob);b.style.opacity=tw(lt,3,3.2);b.style.transform=`scale(${px((.6+.4*pb)*(1+.03*Math.sin(lt*6)))})`}});
+// ---------- кадр ----------
+function sceneAt(t){let s=TL.scenes.find(x=>t>=x.t0&&t<x.t0+x.dur);return s||TL.scenes[TL.scenes.length-1]}
+window.seek=function(t){const s=sceneAt(t),lt=t-s.t0,dur=s.dur;
+for(const k in S)S[k].r.style.display=(k===s.name)?'block':'none';
+const sc=S[s.name];sc.upd(lt,dur);
+const ein=tw(lt,0,.4),eout=1-tw(lt,dur-.3,dur,E.io);const o=Math.min(ein,eout);
+if(s.name!='twist')sc.r.style.transform=`translateY(${px((1-E.oc(clamp(lt/.5)))*40)}px) scale(${px(1+.05*(1-eout)+.02*lt/dur)})`;
+sc.r.style.opacity=o;sc.r.style.filter=`blur(${px((1-o)*12)}px)`;
+b1.style.transform=`translate(${px(-200+Math.sin(t*.5)*160)}px,${px(100+Math.cos(t*.4)*120)}px)`;b2.style.transform=`translate(${px(500+Math.cos(t*.45)*180)}px,${px(900+Math.sin(t*.5)*150)}px)`;b3.style.transform=`translate(${px(100+Math.sin(t*.6)*200)}px,${px(1300+Math.cos(t*.35)*120)}px)`;
+document.getElementById('grid').style.backgroundPosition=`0 ${px(t*30%90)}px`;document.getElementById('grain').style.transform=`translate(${(Math.floor(t*24)*37)%90}px,${(Math.floor(t*24)*53)%90}px)`;
+document.getElementById('hudfill').style.width=px(100*t/TL.dur)+'%';
+// субтитры (пословно)
+const sb=document.getElementById('subs');const cur=(TL.subs||[]).find(c=>t>=c[0]&&t<=c[1]);
+if(cur){const ws=cur[2].split(' ');const wgt=ws.map(w=>Math.max(1,(w.match(/[аеёиоуыэюя]/gi)||[]).length));const tot=wgt.reduce((a,b)=>a+b,0);let acc=0,idx=0;const u=(t-cur[0])/(cur[1]-cur[0]);for(let i=0;i<ws.length;i++){if(u>=acc/tot)idx=i;acc+=wgt[i]}
+sb.innerHTML='<span class="sp">'+ws.map((w,i)=>'<span style="color:'+(i==idx?'#ffc83d':'#fff')+';display:inline-block;margin:0 7px;text-shadow:'+(i==idx?'0 0 24px rgba(255,200,60,.7)':'none')+'">'+w+'</span>').join(' ')+'</span>'}else sb.innerHTML='';
+}
+</script></body></html>
