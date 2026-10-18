@@ -35,7 +35,7 @@ if __name__ == "__main__":
     SR = build.SR; track = np.zeros(int(DUR * SR) + SR, np.float32)
     for s in SC: i0 = int((s["t0"] + build.LEAD) * SR); track[i0:i0 + len(s["a"])] += s["a"]
     track = track / max(np.abs(track).max(), 1e-6) * .85
-    subprocess.run(["ffmpeg", "-nostdin", "-loglevel", "error", "-y", "-ss", "4", "-t", str(DUR + 1), "-i", os.path.join(HERE, "..", "music", "suk_meditation.mp3"), "-ar", str(SR), "-ac", "1", "/tmp/_mm.wav"], check=True)
+    subprocess.run(["ffmpeg", "-nostdin", "-loglevel", "error", "-y", "-ss", os.environ.get("MUSIC_SS", "4"), "-t", str(DUR + 1), "-i", os.path.join(HERE, "..", "music", os.environ.get("MUSIC", "suk_meditation.mp3")), "-ar", str(SR), "-ac", "1", "/tmp/_mm.wav"], check=True)
     m = wavfile.read("/tmp/_mm.wav")[1].astype(np.float32) / 32768; m = np.pad(m, (0, max(0, len(track) - len(m))))[:len(track)]
     fade = np.minimum(1, np.minimum(np.arange(len(track)) / (SR * 1.5), (len(track) - np.arange(len(track))) / (SR * 2.5))); track = track + m / max(np.abs(m).max(), 1e-6) * .2 * fade
     wavfile.write("/tmp/_mv.wav", SR, (np.clip(track / np.abs(track).max(), -1, 1) * .9 * 32767).astype(np.int16))

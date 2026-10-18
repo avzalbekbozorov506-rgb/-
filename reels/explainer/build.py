@@ -49,7 +49,14 @@ def tts(text):
         a = np.asarray(_SYN.synth_audio(p, speaker_id=VOICE["speaker"], speech_rate=VOICE["rate"]), np.float32) / 32768
         segs.append(ss.resample_poly(a, SR, 22050).astype(np.float32))
         if k < len(parts) - 1: segs.append(np.zeros(int(SR * .5), np.float32))
-    a = np.concatenate(segs); wavfile.write(f, SR, (a * 32767).astype(np.int16)); return a
+    a = np.concatenate(segs)
+    if VOICE.get("mystic"):
+        a = ss.resample_poly(a, 107, 100).astype(np.float32)
+        sos = ss.butter(4, 5500, "low", fs=SR, output="sos"); a = ss.sosfilt(sos, a).astype(np.float32)
+        out = np.concatenate([a, np.zeros(int(SR * .8), np.float32)]); wet = np.zeros_like(out)
+        for d, g in ((.17, .28), (.34, .16), (.52, .08)): k = int(SR * d); wet[k:] += g * out[:-k]
+        a = (out + wet).astype(np.float32); a = a / max(np.abs(a).max(), 1e-6) * .9
+    wavfile.write(f, SR, (a * 32767).astype(np.int16)); return a
 
 def timeline():
     t0 = 0.0; sc = []
@@ -64,6 +71,7 @@ import importlib
 _M = importlib.import_module(os.environ.get("EXPL", "scenes_x"))
 SCENES = _M.SCENES
 if hasattr(_M, "SCRIPT"): SCRIPT = _M.SCRIPT
+VOICE.update(getattr(_M, "VOICE", {}))
 HEADER = getattr(_M, "HEADER", "ФИЗИКА · ПРЕЗЕНТАЦИЯ 15.10.2026")
 Y0, Y1 = 250, 1400
 from PIL import ImageFilter
