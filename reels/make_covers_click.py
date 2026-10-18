@@ -14,7 +14,7 @@ def stamp(text, size=96):
     st.putalpha(Image.fromarray(al.astype(np.uint8)).filter(ImageFilter.GaussianBlur(0.6)))
     st = st.rotate(-12, expand=True, resample=Image.BICUBIC); return st.resize((int(st.width * 0.72), int(st.height * 0.72)), Image.LANCZOS)
 
-def make_click(bg, hook, stamp_text, title, sub, out, y=1010, dark_top=False, stamp_pos="top"):
+def make_click(bg, hook, stamp_text, title, sub, out, y=1010, dark_top=False, stamp_pos="top", logo_y=300):
     im = ImageEnhance.Contrast(ImageEnhance.Color(bg.convert("RGB")).enhance(0.95)).enhance(1.1).convert("RGBA")
     yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
     a = np.clip((yy - 1150) / 500, 0, 1) ** 1.1 * 235 + np.clip((300 - yy) / 300, 0, 1) * 120
@@ -22,7 +22,7 @@ def make_click(bg, hook, stamp_text, title, sub, out, y=1010, dark_top=False, st
     a = np.maximum(a, np.clip(((xx - W / 2) ** 2 / (W * 0.72) ** 2 + (yy - H * 0.42) ** 2 / (H * 0.55) ** 2) - 0.45, 0, 1) * 200)
     im.alpha_composite(Image.fromarray(np.dstack([np.full((H, W), 10), np.full((H, W), 6), np.full((H, W), 6), np.clip(a, 0, 245)]).astype(np.uint8), "RGBA"))
     d = ImageDraw.Draw(im)
-    spaced(d, (W // 2, 300), "МЫСЛИ ВЕКОВ", sans("SemiBold", 28), GOLD, 9); d.line(((W // 2 - 70, 338), (W // 2 + 70, 338)), fill=GOLD, width=2)
+    spaced(d, (W // 2, logo_y), "МЫСЛИ ВЕКОВ", sans("SemiBold", 28), GOLD, 9); d.line(((W // 2 - 70, logo_y + 38), (W // 2 + 70, logo_y + 38)), fill=GOLD, width=2)
     size = 118
     while size > 70 and max(d.textlength(l, font=sans("Black", size)) for l in hook.split("\n")) > 900: size -= 4
     f = sans("Black", size)
