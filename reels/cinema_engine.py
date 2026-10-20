@@ -19,6 +19,7 @@ def ease(x): x = min(max(x, 0), 1); return x * x * (3 - 2 * x)
 SCENES = cfg.SCENES          # (озвучка, текст или None для титула, метка, картина|функция(lt, D), подпись, камера)
 LEAD, TAIL, XF = 0.6, 1.0, 0.7
 LEAD_N = LEAD
+XF = getattr(cfg, "XF", XF)                 # длина наплыва между сценами (0 — жёсткая склейка)
 TAIL = getattr(cfg, "TAIL", TAIL)
 
 # ---------- озвучка ----------
@@ -263,13 +264,15 @@ def text_layer(i, lt, D):
             if st - 0.08 <= lt < max(en + 0.35, nxt - 0.02) or (k == len(parts) - 1 and lt >= st): cur = (st, en, ph)
         if cur:
             st, en, ph = cur; fin = ease((lt - st + 0.08) / 0.18) * out
-            words = ph.split(); lines, line = [], ""
+            SANS = getattr(cfg, "SUB_SANS", None)                          # SUB_SANS = "ExtraBold" — гротеск заглавными (эксперимент)
+            words = (ph.upper() if SANS else ph).split(); lines, line = [], ""
             for w_ in words:
                 if len(line) + len(w_) + 1 > getattr(cfg, "SUB_CHARS", 26) and line: lines.append(line); line = w_
                 else: line = (line + " " + w_).strip()
             lines.append(line)
-            size = getattr(cfg, "QUOTE_SIZE", 72); fq = serif(getattr(cfg, "SUB_FONT", "MediumItalic"), size)
-            while size > 50 and max(d.textlength(l, font=fq) for l in lines) > 960: size -= 2; fq = serif(getattr(cfg, "SUB_FONT", "MediumItalic"), size)
+            mk = (lambda z: sans(SANS, z)) if SANS else (lambda z: serif(getattr(cfg, "SUB_FONT", "MediumItalic"), z))
+            size = getattr(cfg, "QUOTE_SIZE", 72); fq = mk(size)
+            while size > 40 and max(d.textlength(l, font=fq) for l in lines) > 960: size -= 2; fq = mk(size)
             total = sum(len(w_) + 1 for w_ in words); prog = (lt - st) / max(en - st, 0.1) * total; done = 0
             y0 = 1215 + TDY + int((1 - fin) * 14)
             kara = getattr(cfg, "SUB_STYLE", "") == "karaoke"
@@ -339,6 +342,10 @@ def scene_frame(i, lt):
         im = im.resize((W, H), Image.BICUBIC, box=((W - cw) / 2, (H - ch) * 0.4, (W + cw) / 2, (H - ch) * 0.4 + ch)).convert("RGBA")
     else:
         z0, z1, (fx0, fy0), (fx1, fy1) = SCENES[i][5]; u = ease(lt / D) * 0.85 + (lt / D) * 0.15
+        cuts = getattr(cfg, "CUTS", {}).get(i)                           # быстрый монтаж: внутри сцены картины меняются каждые CUT_LEN с
+        if cuts:
+            seq = [src] + list(cuts); cl = getattr(cfg, "CUT_LEN", 1.0); k = min(int(lt / cl), len(seq) - 1) if getattr(cfg, "CUT_ONCE", False) else int(lt / cl) % len(seq)
+            src = seq[k]; u = ((lt % cl) / cl)
         pl = clip_plate(src, lt, D) if src in getattr(cfg, "CLIPS", {}) else plate(src)
         if src in getattr(cfg, "CLIPS", {}) and src not in RECT: plate(src)
         pl = fx_apply(src, pl, lt)
