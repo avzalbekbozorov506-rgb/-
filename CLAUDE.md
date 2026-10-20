@@ -11,6 +11,7 @@
 2. Все команды — из папки `reels/`. Основная ветка GitHub — `claude/vika-aptek-training-fjaa3t`: в ней проект Reels (без старых видео) и сайт `vika-aptek/`; новые сессии стартуют с неё. Работу сохранять в ветку сессии. История старых видео — `claude/account-analysis-vqfese`.
 
 ## Цель и ритм (решения пользователя 14.10.2026)
+- **20.10: план 3.0 удалён (файлы `plan30_data*`, `build_plan.py`, страница). Теперь каждую неделю — новый контент-план `reels/plan/week_<дата>.md`; еженедельная задача `trig_01TdtRPukHT1zqX3weTZiUTE` (вс 18:03 МСК). Описание плана 3.0 ниже устарело.**
 - Цель — рост подписчиков. **План 3.0 (с 17.10 по 15.11, одобрен 14.10): 3 ролика в день, у каждого готовый сценарий**:
   https://claude.ai/artifact/AUdJC9CrQqT6vVhr3Ff1jt — данные в `reels/plan/plan30_data.py` (DAYS[0] = 17.10; A/B/C = слоты; `vo` — озвучка, « | » = новый кадр),
   страница собирается `python3 reels/plan/build_plan.py` из `page_template.html`. Прошлые версии: `index_v1_backup.html`, `plan30_data_v2_backup.py`.
