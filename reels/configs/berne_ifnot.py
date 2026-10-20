@@ -1,7 +1,7 @@
 """Книга недели, 21.10 · 10:00 · Э. Берн, «Игры, в которые играют люди» (1964), игра «Если бы не ты» (If It Weren't For You).
 Случай жены, которая жаловалась на мужа и после его смягчения стала бояться выходить одна — пересказ по памяти, сверить с русским изданием.
 Не диагноз. Картины — The Met (CC0), Art Institute of Chicago (CC0)."""
-import os, sys; sys.path.insert(0, os.path.dirname(__file__)); from _voice2 import *
+import os, sys; sys.path.insert(0, os.path.dirname(__file__)); from _voice3 import *
 HEAD = ("ЭРИК БЕРН", "«ИГРЫ, В КОТОРЫЕ ИГРАЮТ ЛЮДИ»")
 TITLE = ("", "", "")
 HOOK = ("МУЖ НЕ ПУСКАЛ ЕЁ\nИЗ ДОМА. ПОТОМ ПУСТИЛ", 3.0)

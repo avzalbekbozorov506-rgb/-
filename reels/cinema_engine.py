@@ -51,11 +51,11 @@ def tts(text, spk):
         if _VOSK is None:
             from vosk_tts import Model as VM, Synth as VS
             _VOSK = VS(VM(model_name=vk.get("model", "vosk-model-tts-ru-0.9-multi")))
-        parts = [p for p in re.split(r"(?<=[.:!?])\s+", re.sub(r"[«»“”\"]", "", text if vk.get("stress") else text.replace("+", ""))) if p.strip()]; out = []
+        parts = [p for p in re.split(r"(?<=[.:!?])\s+", re.sub(r"[«»“”\"]", "", (text if vk.get("stress") else text.replace("+", "")).replace("…", "."))) if p.strip()]; out = []
         for k, p in enumerate(parts):
             a = np.asarray(_VOSK.synth_audio(p, speaker_id=vk.get("speaker", 4), speech_rate=vk.get("rate", 1.0)), np.float32) / 32768.0
             out.append(ss_.resample_poly(a, SR, 22050).astype(np.float32))
-            if k < len(parts) - 1: out.append(np.zeros(int(SR * vk.get("dot", 380) / 1000), np.float32))
+            if k < len(parts) - 1: out.append(np.zeros(int(SR * vk.get("dot", 380) * (vk.get("qmul", 1.0) if p.rstrip().endswith("?") else 1.0) / 1000), np.float32))
         return np.concatenate(out)
     pr = getattr(cfg, "PROSODY", None)
     if pr:                                                               # «голос B»: темп и тон задаёт сам синтезатор (SSML), фраза целиком — живая интонация
