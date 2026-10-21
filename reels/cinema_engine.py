@@ -227,7 +227,7 @@ def plate(name):
 def camera(im, z, fx, fy):
     base = min(im.width / W, im.height / H); cw, ch = W * base / z, H * base / z
     cx = min(max(fx * im.width, cw / 2), im.width - cw / 2); cy = min(max(fy * im.height, ch / 2), im.height - ch / 2)
-    return im.resize((W, H), Image.BILINEAR, box=(cx - cw / 2, cy - ch / 2, cx + cw / 2, cy + ch / 2))
+    return im.resize((W, H), Image.BILINEAR, box=(max(cx - cw / 2, 0), max(cy - ch / 2, 0), min(cx + cw / 2, im.width), min(cy + ch / 2, im.height)))
 
 yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
 TDY = getattr(cfg, "TEXT_DY", 0)
