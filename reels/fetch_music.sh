@@ -10,4 +10,6 @@ dl schubert_d959_andantino.mp3 "Schubert%20-%20The%20Piano%20Sonatas/Sonata%20in
 dl beethoven_adagio.mp3 "String%20Quartets/Beethoven%20String%20Quartet%20in%20B%20flat%20Major%20Op%2018/String%20Quartet%20No.%206%20in%20B%20Flat%20Major%2C%20Op.%2018%2C%20No.%206%20-%20II.%20Adagio%20ma%20non%20troppo.mp3"
 dl haydn_adagio.mp3 "String%20Quartets/Haydn%20Quartet%20in%20D%20Major%20Op.64/String%20Quartet%20In%20D%2C%20Op.%20645%2C%20H%20363%2C%20Lark%20-%20II.%20Adagio%2C%20Cantabile.mp3"
 dl suk_meditation.mp3 "String%20Quartets/Suk%20-Meditation/Meditation.mp3"
+# CC0 1.0 (проверено 21.10.2026 по метаданным archive.org): Бах, Гольдберг-вариации, Ария — Kimiko Ishizaka, The Open Goldberg Variations. Основная музыка недели «Весы».
+[ -s ogv_aria.mp3 ] || curl -sSL -m 300 --retry 2 -o ogv_aria.mp3 "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_01_-_Aria.mp3"
 ls -la
