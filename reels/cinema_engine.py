@@ -130,8 +130,9 @@ for i in range(int(DUR / bar) + 1):
             a0 = s0 + int(k * SR); a1 = min(a0 + int(0.8 * SR), N)
             if a0 < N: sg = tt[a0:a1] - tt[a0]; mus[a0:a1] += 0.25 * np.exp(-sg * 6) * np.sin(2 * np.pi * (55 + 40 * np.exp(-sg * 20)) * sg)
 mus *= np.minimum(np.minimum(tt / 3, 1), np.clip((DUR - tt) / 3, 0, 1))
-wavfile.write(f"{WORK}/music.wav", SR, (mus / np.abs(mus).max() * 0.8 * 32767).astype(np.int16))
-MUSIC = getattr(cfg, "MUSIC", None)         # MUSIC = ("music/файл.mp3", старт_сек): настоящая запись вместо синтеза (public domain, fetch_music.sh)
+if getattr(cfg, "NO_MUSIC", False): mus = mus * 0.0                 # без музыки: только голос (права на музыку не подтверждены)
+wavfile.write(f"{WORK}/music.wav", SR, (mus / max(np.abs(mus).max(), 1e-9) * 0.8 * 32767).astype(np.int16))
+MUSIC = None if getattr(cfg, "NO_MUSIC", False) else getattr(cfg, "MUSIC", None)         # MUSIC = ("music/файл.mp3", старт_сек): настоящая запись вместо синтеза (public domain, fetch_music.sh)
 if MUSIC:
     mfx = "highpass=f=50,equalizer=f=300:t=q:w=0.8:g=-3,equalizer=f=1500:t=q:w=0.9:g=-6,equalizer=f=3500:t=q:w=1:g=-4,lowpass=f=9000,loudnorm=I=-30:TP=-3"
     subprocess.run(["ffmpeg", "-nostdin", "-loglevel", "error", "-y", "-ss", str(MUSIC[1]), "-i", f"{HERE}/{MUSIC[0]}", "-t", f"{DUR + 1:.2f}",
