@@ -12,7 +12,7 @@ HOOK_SIZE = 80
 HOOK_Y = 520
 TAIL = 1.4
 PROG = [[50, 57, 62, 65], [46, 53, 58, 62]]
-NO_MUSIC = True                                           # музыка не используется: права на записи не подтверждены
+MUSIC = ("music/ogv_aria.mp3", 0)   # Bach, Goldberg Aria — Kimiko Ishizaka, The Open Goldberg Variations, CC0 1.0 (archive.org/details/The_Open_Goldberg_Variations-11823)
 
 GOLD, WHITE, GREY = (214, 178, 112), (246, 240, 228), (150, 140, 128)
 def sans(style, size): return ImageFont.truetype(f"/usr/share/fonts/opentype/inter/Inter-{style}.otf", size)
