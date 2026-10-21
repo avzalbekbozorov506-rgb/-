@@ -97,7 +97,7 @@ def cta_card(l1, l2, l3):                                  # финальная 
     def f(lt, D):
         im = bg(); d = ImageDraw.Draw(im, "RGBA"); k = ease(lt / 0.7)
         for i, (t, sz, col) in enumerate(((l1[0], 56, GOLD), (l1[1], 56, GOLD), (l2, 92, WHITE), (l3[0], 46, GREY), (l3[1], 46, GREY))):
-            text_c(d, (W // 2, 700 + i * (110 if i < 2 else 125 if i == 2 else 95) + (60 if i == 2 else 0) + (50 if i > 2 else 0)), t, sans("Black", sz), col + (int(255 * k),))
+            text_c(d, (W // 2, (700, 800, 980, 1100, 1170)[i]), t, sans("Black", sz), col + (int(255 * k),))
         return im
     return f
 

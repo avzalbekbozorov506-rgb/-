@@ -28,11 +28,11 @@ def phone(d, x, y, w=330, h=620):
     d.rounded_rectangle((x - w // 2 + 14, y - h // 2 + 18, x + w // 2 - 14, y + h // 2 - 18), 32, fill=(30, 34, 46, 255))
 
 def close_app(lt, D):                                      # сцена 0: палец закрывает приложение
-    im = bg(); d = ImageDraw.Draw(im, "RGBA"); phone(d, 540, 960)
+    im = bg(); d = ImageDraw.Draw(im, "RGBA"); phone(d, 540, 820)
     k = 1 - ease((lt - 0.8) / 0.6)
-    d.rounded_rectangle((540 - 135, 960 - 270, 540 + 135, 960 + 270), 26, fill=(120, 80, 190, int(255 * k)))
-    d.ellipse((540 - 38, 960 + 280 - 30 * (1 - k), 540 + 38, 960 + 356 - 30 * (1 - k)), fill=(230, 200, 170, 255))
-    text_c(d, (540, 1330), "закрыл приложение", sans("Bold", 44), GREY + (255,)); return im
+    d.rounded_rectangle((540 - 135, 820 - 270, 540 + 135, 820 + 270), 26, fill=(120, 80, 190, int(255 * k)))
+    d.ellipse((540 - 38, 820 + 280 - 30 * (1 - k), 540 + 38, 820 + 356 - 30 * (1 - k)), fill=(230, 200, 170, 255))
+    text_c(d, (540, 1240), "закрыл приложение", sans("Bold", 44), GREY + (255,)); return im
 
 def notes(lt, D):                                          # сцена 1: две оценки в заметках
     im = bg(); d = ImageDraw.Draw(im, "RGBA")
@@ -65,7 +65,7 @@ def cta_card(l1, l2, l3):                                  # финальная 
     def f(lt, D):
         im = bg(); d = ImageDraw.Draw(im, "RGBA"); k = ease(lt / 0.7)
         for i, (t, sz, col) in enumerate(((l1[0], 56, GOLD), (l1[1], 56, GOLD), (l2, 92, WHITE), (l3[0], 46, GREY), (l3[1], 46, GREY))):
-            text_c(d, (W // 2, 700 + i * (110 if i < 2 else 125 if i == 2 else 95) + (60 if i == 2 else 0) + (50 if i > 2 else 0)), t, sans("Black", sz), col + (int(255 * k),))
+            text_c(d, (W // 2, (700, 800, 980, 1100, 1170)[i]), t, sans("Black", sz), col + (int(255 * k),))
         return im
     return f
 

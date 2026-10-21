@@ -55,7 +55,7 @@ def curve(lt, D):                                          # сцена 3: ли�
     for a, b in zip(pts[:n - 1], pts[1:n]): d.line((a, b), fill=((240, 200, 110) if b[1] < base - 5 else (130, 150, 230)) + (255,), width=12)
     if k > 0.3: text_c(d, (x0 + (x1 - x0) * 0.25, base - 400), "сильное чувство", sans("Black", 44), (240, 200, 110, 255))
     if k > 0.65: text_c(d, (x0 + (x1 - x0) * 0.52, base + 290), "противоположное", sans("Black", 44), (140, 160, 235, 255))
-    if k > 0.95: text_c(d, (540, 520), "сначала чувство → потом противоположное", sans("Bold", 40), WHITE + (255,))
+    if k > 0.95: text_c(d, (540, 380), "сначала чувство → потом противоположное", sans("Bold", 40), WHITE + (255,))
     return im
 
 def person(d, x, y, col, scale=1.0, arms=0.0):             # простой силуэт парашютиста: купол, лямки, человек
@@ -84,7 +84,7 @@ def cta_card(l1, l2, l3):                                  # финальная 
     def f(lt, D):
         im = bg(); d = ImageDraw.Draw(im, "RGBA"); k = ease(lt / 0.7)
         for i, (t, sz, col) in enumerate(((l1[0], 56, GOLD), (l1[1], 56, GOLD), (l2, 92, WHITE), (l3[0], 46, GREY), (l3[1], 46, GREY))):
-            text_c(d, (W // 2, 700 + i * (110 if i < 2 else 125 if i == 2 else 95) + (60 if i == 2 else 0) + (50 if i > 2 else 0)), t, sans("Black", sz), col + (int(255 * k),))
+            text_c(d, (W // 2, (700, 800, 980, 1100, 1170)[i]), t, sans("Black", sz), col + (int(255 * k),))
         return im
     return f
 
