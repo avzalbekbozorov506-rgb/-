@@ -474,5 +474,40 @@
  "met_437822": "Jacopo Tintoretto (Jacopo Robusti) — Portrait of a Man, 1550s (The Met, CC0)",
  "met_435802": "Bronzino (Agnolo di Cosimo di Mariano) — Portrait of a Young Man, 1530s (The Met, CC0)",
  "met_437851": "Cosmè Tura (Cosimo di Domenico di Bonaventura) — Portrait of a Young Man, 1470s (The Met, CC0)",
- "met_436769": "Jacometto (Jacometto Veneziano) — Portrait of a Young Man, 1480s (The Met, CC0)"
+ "met_436769": "Jacometto (Jacometto Veneziano) — Portrait of a Young Man, 1480s (The Met, CC0)",
+ "nasa_sofia_sunset": {
+  "source": "NASA Image and Video Library",
+  "nasa_id": "ED11-0211-06",
+  "license": "Public domain (NASA)"
+ },
+ "nasa_sofia_takeoff": {
+  "source": "NASA Image and Video Library",
+  "nasa_id": "ED11-0211-04",
+  "license": "Public domain (NASA)"
+ },
+ "nasa_sofia_land": {
+  "source": "NASA Image and Video Library",
+  "nasa_id": "ED07-0079-02",
+  "license": "Public domain (NASA)"
+ },
+ "nasa_sofia_sky": {
+  "source": "NASA Image and Video Library",
+  "nasa_id": "ED15-0187-236",
+  "license": "Public domain (NASA)"
+ },
+ "nasa_dc8_landing": {
+  "source": "NASA Image and Video Library",
+  "nasa_id": "AFRC2021-0106-03",
+  "license": "Public domain (NASA)"
+ },
+ "nasa_dc8_flight": {
+  "source": "NASA Image and Video Library",
+  "nasa_id": "EC98-44428-005",
+  "license": "Public domain (NASA)"
+ },
+ "nasa_sofia_blue": {
+  "source": "NASA Image and Video Library",
+  "nasa_id": "ED07-0079-03",
+  "license": "Public domain (NASA)"
+ }
 }

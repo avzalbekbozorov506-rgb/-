@@ -258,6 +258,30 @@ def text_layer(i, lt, D):
         d.line(((W // 2 - 120, 1345 + TDY), (W // 2 + 120, 1345 + TDY)), fill=GOLD + (int(200 * a),), width=2)
         b = ease((lt - 1.4) / 1.0) * out; d.text((W // 2, 1410 + TDY), line2, font=serif("MediumItalic", 58), fill=WHITE + (int(235 * b),), anchor="mm")
         c = ease((lt - 3.0) / 1.0) * out; spaced(d, (W // 2, 1500 + TDY), line3, sans("Medium", 24), GOLD + (int(230 * c),), 4)
+    elif text == "SUB" and getattr(cfg, "SUB_STYLE", "") == "words":       # «как в Reels»: 1–2 слова крупно, жёлтым с обводкой, по слогам под голос
+        a = ease((lt - 0.2) / 0.6) * out
+        if tag and getattr(cfg, "WORDS_TAG", True): spaced(d, (W // 2, 1135 + TDY), tag, F_TAG, GOLD + (int(240 * a),), 6)
+        for k, (st, en, ph) in enumerate(PHRASES[i]):
+            nxt = PHRASES[i][k + 1][0] if k + 1 < len(PHRASES[i]) else D
+            if not (st - 0.05 <= lt < max(en + 0.25, nxt - 0.02) or (k == len(PHRASES[i]) - 1 and lt >= st)): continue
+            ws = ph.split(); syl = [max(1, sum(ch in "аеёиоуыэюяАЕЁИОУЫЭЮЯ" for ch in w_)) + 0.3 for w_ in ws]; tot = sum(syl)
+            t_ = (lt - st) / max(en - st, 0.1) * tot; acc = 0; cur = len(ws) - 1
+            for j, sy in enumerate(syl):
+                if t_ < acc + sy: cur = j; break
+                acc += sy
+            maxc = getattr(cfg, "WORDS_CHARS", 14); chunks, c_ = [], []
+            for j, w_ in enumerate(ws):
+                if c_ and (len(" ".join(ws[x] for x in c_ + [j])) > maxc or len(c_) >= 2): chunks.append(c_); c_ = []
+                c_.append(j)
+            chunks.append(c_); ch = next(c for c in chunks if cur in c)
+            st_c = st + (en - st) * sum(syl[:ch[0]]) / tot; pop = ease((lt - st_c + 0.02) / 0.12)
+            size = int(getattr(cfg, "WORDS_SIZE", 96) * (0.92 + 0.08 * pop)); f_ = sans(getattr(cfg, "WORDS_FONT", "ExtraBold"), size)
+            txt_ = " ".join(ws[x] for x in ch)
+            if getattr(cfg, "WORDS_UPPER", False): txt_ = txt_.upper()
+            while d.textlength(txt_, font=f_) > 980 and size > 50: size -= 4; f_ = sans(getattr(cfg, "WORDS_FONT", "ExtraBold"), size)
+            y_ = getattr(cfg, "WORDS_Y", 1290); col = getattr(cfg, "WORDS_COLOR", (255, 226, 60))
+            d.text((W // 2, y_), txt_, font=f_, fill=col + (int(255 * out),), anchor="mm", stroke_width=max(4, size // 14), stroke_fill=(0, 0, 0, int(230 * out)))
+            break
     elif text == "SUB":
         a = ease((lt - 0.2) / 0.6) * out
         if tag: spaced(d, (W // 2, 1135 + TDY), tag, F_TAG, GOLD + (int(240 * a),), 6)
