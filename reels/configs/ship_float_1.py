@@ -14,6 +14,7 @@ HOOK_Y = 1000
 MUSIC = ("music/ogv_aria.mp3", 0)
 SUB_STYLE = "words"; WORDS_TAG = False; WORDS_Y = 1300; WORDS_SIZE = 92
 AA = 0.35
+GRAIN = 4.5
 TAIL = 0.3; XF = 0.35; LEAD_N = 0.2; GAP = 0.28
 RED = (255, 80, 60); GOLD = (255, 214, 60); ICE = (170, 215, 255); WHT = (240, 244, 255); DIM = (130, 150, 190); BLUE = (60, 150, 255); ORNG = (255, 140, 50)
 BG = (6, 9, 18)
@@ -45,38 +46,71 @@ CX = 540; WL = 800          # центр и уровень воды
 SEA = (20, 70, 130); STEEL = (112, 122, 138); AIRC = (150, 205, 255)
 def hull_poly(cy_bot, w=560, h=210, bw=0.82):
     top = cy_bot - h; return [(CX - w / 2, top), (CX + w / 2, top), (CX + w / 2 * bw, cy_bot), (CX - w / 2 * bw, cy_bot)]
-def water_over(im, lt, wl=WL, a=0.62, bottom=1180, tint=SEA):
-    """Полупрозрачная вода поверх объектов: градиент и бегущая волна."""
+_SKY = {}
+def sky_bg(lt):
+    """Фон над водой: размытое небо с настоящего фото NASA, затемнённое, с лёгким дрейфом."""
+    if "bg" not in _SKY:
+        im = Image.open(f"{K.HERE}/art/nasa_intrepid.jpg").convert("RGB"); w0, h0 = im.size
+        top = im.crop((0, 0, w0, int(h0 * 0.32))).resize((int(W * 1.3), int(WL * 1.05)), Image.BILINEAR).filter(ImageFilter.GaussianBlur(14))
+        arr = np.asarray(top).astype(np.float32) * np.array([0.55, 0.68, 0.9], np.float32); yy = np.linspace(0.35, 1.0, arr.shape[0], dtype=np.float32)[:, None, None]
+        _SKY["bg"] = Image.fromarray(np.clip(arr * (0.5 + 0.7 * yy), 0, 255).astype(np.uint8))
+    bg = _SKY["bg"]; ox = int((bg.width - W) * (0.5 + 0.4 * math.sin(lt * 0.15)))
+    im = Image.new("RGBA", (W, H), BG + (255,)); im.paste(bg.crop((ox, 0, ox + W, bg.height)).convert("RGBA"), (0, 0))
     ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(ov)
+    for y in range(0, 300): d.line([(0, y), (W, y)], fill=(4, 6, 14, int(170 * (1 - y / 300))))
+    im.alpha_composite(ov); return im
+def water_over(im, lt, wl=WL, a=0.62, bottom=1180, tint=SEA):
+    """Вода поверх объектов: градиент глубины, каустика, лучи света, пузыри, бегущая волна с бликом."""
+    y0 = wl - 30; hh = bottom - y0; sw, sh = W // 2, hh // 2
+    yy, xx = np.mgrid[0:sh, 0:sw].astype(np.float32); X = xx * 2; Y = yy * 2 + y0
+    dep = np.clip((Y - wl) / 420.0, 0, 1)[..., None]
+    top = np.array([40, 125, 185], np.float32); deep = np.array([4, 16, 42], np.float32); col = top * (1 - dep) + deep * dep
+    c1 = np.sin(X * 0.021 + lt * 0.9 + np.sin(Y * 0.017 + lt * 0.6) * 2.0) + np.sin(Y * 0.029 - lt * 0.7 + np.sin(X * 0.013 + lt * 0.4) * 2.5)
+    cau = np.exp(-6.0 * np.abs(c1))[..., None] * (1 - dep) ** 1.4 * np.array([120, 190, 230], np.float32)
+    ray = np.clip(np.sin((X + Y * 0.45) * 0.017 + np.sin(lt * 0.5 + X * 0.004) * 1.5), 0, 1) ** 3 * (1 - dep[..., 0]) ** 1.6
+    col = col + cau * 0.55 + ray[..., None] * np.array([60, 95, 120], np.float32)
+    wave = 7 * np.sin(X / 85.0 + lt * 2.2) + 3 * np.sin(X / 33.0 - lt * 3.1); inside = (Y >= wl + wave)[..., None]
+    alpha = np.where(inside, 255 * a * (0.9 + 0.1 * dep), 0.0)
+    rgba = np.concatenate([np.clip(col, 0, 255), alpha], -1).astype(np.uint8)
+    ov = Image.fromarray(rgba, "RGBA").resize((W, hh), Image.BILINEAR); lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); lay.paste(ov, (0, y0)); d = ImageDraw.Draw(lay)
+    rng = np.random.default_rng(7)
+    for k in range(70):
+        px = rng.uniform(0, W) + 14 * math.sin(lt * 0.8 + k); sp = rng.uniform(25, 70); py = wl + 40 + (bottom - wl - 60) * (1 - ((rng.uniform(0, 1) + lt * sp / 600.0) % 1)); r = rng.uniform(1.5, 4.2)
+        d.ellipse((px - r, py - r, px + r, py + r), outline=(190, 230, 255, 120), width=1)
     xs = np.arange(0, W + 20, 20); ys = wl + 7 * np.sin(xs / 85.0 + lt * 2.2) + 3 * np.sin(xs / 33.0 - lt * 3.1)
-    poly = [(int(x), float(y)) for x, y in zip(xs, ys)] + [(W, bottom), (0, bottom)]
-    d.polygon(poly, fill=tint + (int(255 * a),))
-    d.line([(int(x), float(y)) for x, y in zip(xs, ys)], fill=(170, 220, 255, 230), width=4)
-    im.alpha_composite(ov.filter(ImageFilter.GaussianBlur(0.6)))
-def hull_draw(im, bot, lt, air=1.0, wl=WL, fill_in=0.0, ghost=0.0, tilt=0.0, cav=True, w=560, h=210, label=None):
-    """Корпус в разрезе (толстый стальной профиль, внутри воздух). ghost — подсветка вытесненной воды (часть корпуса ниже ватерлинии)."""
+    line = [(int(x), float(y)) for x, y in zip(xs, ys)]; d.line(line, fill=(210, 240, 255, 240), width=4)
+    gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(gl).line(line, fill=(150, 215, 255, 255), width=10); im.alpha_composite(gl.filter(ImageFilter.GaussianBlur(9))); im.alpha_composite(lay)
+_GR = {}
+def hull_draw(im, bot, lt, air=1.0, wl=WL, fill_in=0.0, ghost=0.0, tilt=0.0, cav=True, w=560, h=210, label=None, bob=True):
+    """Корпус в разрезе: стальной градиент, подсветка кромок, окна, воздух внутри (светящиеся точки). ghost — вытесненная вода."""
+    if bob: bot = bot + 5 * math.sin(lt * 1.7); tilt = tilt + 1.1 * math.sin(lt * 1.3)
     lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
-    P = hull_poly(bot, w, h); d.polygon(P, fill=STEEL + (255,), outline=(205, 215, 235, 255))
-    top = bot - h; t = 26
+    P = hull_poly(bot, w, h); top = bot - h; t = 26
+    key = (w, h)
+    m = Image.new("L", (W, H), 0); ImageDraw.Draw(m).polygon(P, fill=255)
+    grad = np.linspace(0, 1, H, dtype=np.float32)[:, None, None]; yv = np.clip((np.arange(H)[:, None, None] - top) / max(h, 1), 0, 1)
+    base = (np.array([150, 162, 182], np.float32) * (1 - yv) + np.array([58, 66, 84], np.float32) * yv) * np.ones((1, W, 1), np.float32)
+    g = Image.fromarray(np.clip(base, 0, 255).astype(np.uint8)).convert("RGBA"); lay.paste(g, (0, 0), m); d = ImageDraw.Draw(lay)
+    d.line([P[0], P[1]], fill=(235, 242, 255, 255), width=4); d.line([P[0], P[3]], fill=(190, 205, 230, 255), width=3); d.line([P[1], P[2]], fill=(120, 135, 160, 255), width=3); d.line([P[3], P[2]], fill=(90, 105, 135, 255), width=3)
     inner = [(P[0][0] + t, top + t), (P[1][0] - t, top + t), (P[2][0] - t * 1.4, bot - t), (P[3][0] + t * 1.4, bot - t)]
     if cav:
-        d.polygon(inner, fill=(10, 16, 30, 255))
-        rng = np.random.default_rng(3)
+        d.polygon(inner, fill=(7, 12, 26, 255)); rng = np.random.default_rng(3)
         for k in range(46):
             px = rng.uniform(inner[0][0] + 10, inner[1][0] - 10); py = rng.uniform(top + t + 8, bot - t - 8) + 5 * math.sin(lt * 2 + k)
-            if py < wl + (1 - air) * 0 and air > 0.02 and rng.random() < air + 0.02:
-                r = 3; d.ellipse((px - r, py - r, px + r, py + r), fill=AIRC + (int(180 * air),))
-        if fill_in > 0.01:   # вода внутри корпуса поднимается
-            yy = (bot - t) - fill_in * (bot - t - (top + t)); d.polygon([(inner[3][0] + (inner[2][0] - inner[3][0]) * 0, bot - t), (inner[2][0], bot - t), (inner[2][0], yy), (inner[3][0], yy)], fill=SEA + (230,))
-    d.rectangle((CX - 70, top - 62, CX + 70, top), fill=(96, 106, 124, 255), outline=(205, 215, 235, 255)); d.rectangle((CX - 8, top - 120, CX + 8, top - 62), fill=(96, 106, 124, 255))
-    if tilt: lay = lay.rotate(tilt, center=(CX, bot - h / 2))
-    im.alpha_composite(lay)
-    if ghost > 0.01:   # вытесненная вода = «призрак» погружённой части
-        m = Image.new("L", (W, H), 0); ImageDraw.Draw(m).polygon(P, fill=255); wm = Image.new("L", (W, H), 0); ImageDraw.Draw(wm).rectangle((0, wl, W, H), fill=255)
-        mk = ImageChops.multiply(m, wm); g = Image.new("RGBA", (W, H), (255, 214, 60, int(150 * ghost))); g.putalpha(mk.point(lambda v: int(v * 0.6 * ghost))); im.alpha_composite(g)
+            if air > 0.02 and rng.random() < air + 0.02: r = 3; d.ellipse((px - r, py - r, px + r, py + r), fill=AIRC + (int(200 * air),))
+        if fill_in > 0.01:
+            yy_ = (bot - t) - fill_in * (bot - t - (top + t)); d.polygon([(inner[3][0], bot - t), (inner[2][0], bot - t), (inner[2][0], yy_), (inner[3][0], yy_)], fill=SEA + (230,))
+    d.rectangle((CX - 70, top - 62, CX + 70, top), fill=(120, 132, 154, 255), outline=(225, 235, 255, 255), width=2); d.rectangle((CX - 8, top - 120, CX + 8, top - 62), fill=(120, 132, 154, 255))
+    for k in range(5): d.rectangle((CX - 56 + k * 24, top - 46, CX - 42 + k * 24, top - 34), fill=(255, 214, 120, 255))
+    if tilt: lay = lay.rotate(tilt, center=(CX, bot - h / 2), resample=Image.BICUBIC)
+    glow = lay.filter(ImageFilter.GaussianBlur(14)); glow.putalpha(glow.getchannel("A").point(lambda v: int(v * 0.25))); im.alpha_composite(glow); im.alpha_composite(lay)
+    if ghost > 0.01:
+        m2 = Image.new("L", (W, H), 0); ImageDraw.Draw(m2).polygon(P, fill=255); wm = Image.new("L", (W, H), 0); ImageDraw.Draw(wm).rectangle((0, wl, W, H), fill=255)
+        mk = ImageChops.multiply(m2, wm); gh = Image.new("RGBA", (W, H), (255, 214, 60, 255)); gh.putalpha(mk.point(lambda v: int(v * 0.55 * ghost))); im.alpha_composite(gh)
+        ol = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(ol).polygon(P, outline=(255, 226, 120, int(255 * ghost)), width=4); ol.putalpha(ImageChops.multiply(ol.getchannel("A"), wm)); im.alpha_composite(ol)
     return P
 def sea_scene(lt, bot, **kw):
-    im = grid_bg(lt); P = hull_draw(im, bot, lt, **{k: v for k, v in kw.items() if k not in ("wl_a",)}); water_over(im, lt, a=kw.get("wl_a", 0.55)); return im, P
+    im = sky_bg(lt); P = hull_draw(im, bot, lt, **{k: v for k, v in kw.items() if k not in ("wl_a",)}); water_over(im, lt, a=kw.get("wl_a", 0.55)); return im, P
 def force_arrows(im, bot, up, down, a=1.0):
     K.arrow_glow(im, (CX, bot - 105), (CX, bot - 105 - up), (110, 215, 255), w=14, head=46, a=a)
     K.arrow_glow(im, (CX - 150, bot - 105), (CX - 150, bot - 105 + down), GOLD, w=14, head=46, a=a)
@@ -104,7 +138,7 @@ def s2(lt, D):
     return fin(im, lay, lt, shake=0, k=0.7)
 # ---------- 3. кусок стали тонет
 def s3(lt, D):
-    im = grid_bg(lt); lay, d = layer(); fall = P(3, lt, 0, 0.1, 1.0) * 0 + seg(lt, T(3, 0, 0.2), T(3, 1, 0.55))
+    im = sky_bg(lt); lay, d = layer(); fall = P(3, lt, 0, 0.1, 1.0) * 0 + seg(lt, T(3, 0, 0.2), T(3, 1, 0.55))
     y = 470 + 560 * fall ** 1.6; d.rounded_rectangle((CX - 110, y - 110, CX + 110, y + 110), 14, fill=STEEL + (255,), outline=(205, 215, 235, 255), width=3)
     im.alpha_composite(lay); water_over(im, lt, a=0.5); lay, d = layer()
     B.tracked(d, (540, 300), "СТАЛЬ ТОНЕТ", 44, ICE, u=P(3, lt, 0, 0.0, 0.7))
@@ -122,7 +156,7 @@ def s4(lt, D):
     return fin(im, lay, lt, k=0.7)
 # ---------- 5. та же сталь: брусок тонет, корпус плывёт
 def s5(lt, D):
-    im = grid_bg(lt); lay, d = layer(); k0 = P(5, lt, 0, 0.0, 0.7)
+    im = sky_bg(lt); lay, d = layer(); k0 = P(5, lt, 0, 0.0, 0.7)
     y = 760 + 220 * ease(P(5, lt, 0, 0.1, 0.9)); d.rounded_rectangle((250 - 70, y - 70, 250 + 70, y + 70), 10, fill=STEEL + (255,), outline=(205, 215, 235, 255), width=3)
     im.alpha_composite(lay); P_ = hull_draw(im, WL + 70 + 40 * (1 - P(5, lt, 1, 0.1, 0.8)), lt, w=440, h=150, cav=True)
     # корпус сдвигаем вправо: рисуем отдельно
@@ -164,7 +198,7 @@ def s8(lt, D):
     return fin(im, lay, lt, k=0.7, shake=1.0 + 3 * sink)
 # ---------- 9. пресная и морская
 def s9(lt, D):
-    im = grid_bg(lt); lay, d = layer(); u = P(9, lt, 0, 0.1, 0.8)
+    im = sky_bg(lt); lay, d = layer(); u = P(9, lt, 0, 0.1, 0.8)
     d_f = 160 + 14 * u; d_s = 160
     for cx_, dr, col, nm, rho in ((290, d_f, (90, 200, 140), "ПРЕСНАЯ", "1,000"), (790, d_s, ICE, "МОРЕ", "1,025")):
         hp = [(cx_ - 190, WL + dr - 150), (cx_ + 190, WL + dr - 150), (cx_ + 150, WL + dr), (cx_ - 150, WL + dr)]; d.polygon(hp, fill=STEEL + (255,), outline=(205, 215, 235, 255))
