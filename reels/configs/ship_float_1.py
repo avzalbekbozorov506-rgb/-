@@ -85,8 +85,9 @@ def s0(lt, D):
     im = K.photo("nasa_intrepid", lt, D, z0=1.0, z1=1.1, fx=0.5, fy=0.55, dx=0.05, cy=700).convert("RGBA"); lay, d = layer()
     a = P(0, lt, 0, 0.2, 0.7)
     if a > 0:
-        B.reticle(d, (560, 800), 170, GOLD + (int(220 * a),), u=a, ticks=36, w=2)
-        B.leader(d, (440, 730), (380, 560), (90, 560), GOLD + (220,), u=a); B.tracked(d, (260, 530), "БОЛЕЕ 27 000 Т", 26, GOLD, u=P(0, lt, 0, 0.5, 1.0)); tx(d, (540, 1085), "АВИАНОСЕЦ-МУЗЕЙ «ИНТРЕПИД», НЬЮ-ЙОРК", 26, DIM, a=P(0, lt, 1, 0.2, 0.8), w="Medium")
+        B.reticle(d, (400, 800), 170, GOLD + (int(220 * a),), u=a, ticks=36, w=2)
+        B.leader(d, (330, 690), (300, 560), (90, 560), GOLD + (220,), u=a); pill(d, (270, 520), "БОЛЕЕ 27 000 Т", 28, GOLD, a=P(0, lt, 0, 0.5, 1.0))
+        tx(d, (540, 330), "АВИАНОСЕЦ-МУЗЕЙ «ИНТРЕПИД», НЬЮ-ЙОРК", 26, WHT, a=P(0, lt, 1, 0.2, 0.8), w="Medium")
     return fin(im, lay, lt, shake=2.0 * P(0, lt, 1, 0.5, 1.0) + 1.0, k=0.45, streak=0.3)
 # ---------- 1. сталь + воздух
 def s1(lt, D):
