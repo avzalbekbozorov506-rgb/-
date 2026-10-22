@@ -52,8 +52,8 @@ def sky_bg(lt):
     if "bg" not in _SKY:
         im = Image.open(f"{K.HERE}/art/nasa_intrepid.jpg").convert("RGB"); w0, h0 = im.size
         top = im.crop((0, 0, w0, int(h0 * 0.32))).resize((int(W * 1.3), int(WL * 1.05)), Image.BILINEAR).filter(ImageFilter.GaussianBlur(14))
-        arr = np.asarray(top).astype(np.float32) * np.array([0.55, 0.68, 0.9], np.float32); yy = np.linspace(0.35, 1.0, arr.shape[0], dtype=np.float32)[:, None, None]
-        _SKY["bg"] = Image.fromarray(np.clip(arr * (0.5 + 0.7 * yy), 0, 255).astype(np.uint8))
+        arr = np.asarray(top).astype(np.float32) * np.array([0.22, 0.3, 0.45], np.float32); yy = np.linspace(0.35, 1.0, arr.shape[0], dtype=np.float32)[:, None, None]
+        _SKY["bg"] = Image.fromarray(np.clip(arr * (0.45 + 0.55 * yy), 0, 255).astype(np.uint8))
     bg = _SKY["bg"]; ox = int((bg.width - W) * (0.5 + 0.4 * math.sin(lt * 0.15)))
     im = Image.new("RGBA", (W, H), BG + (255,)); im.paste(bg.crop((ox, 0, ox + W, bg.height)).convert("RGBA"), (0, 0))
     ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(ov)
