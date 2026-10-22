@@ -10,7 +10,7 @@ from bh_cine import W, H, ease, seg, lerp, fnt
 HEAD = ("ПРОСТЫМ ЯЗЫКОМ", "ПОЧЕМУ КОРАБЛЬ НЕ ТОНЕТ")
 TITLE = ("", "", "")
 HOOK = ("БОЛЕЕ 27 000 ТОНН.\nПОЧЕМУ НЕ ТОНЕТ?", 2.6)
-HOOK_Y = 1060
+HOOK_Y = 1010
 MUSIC = ("music/ogv_aria.mp3", 0)
 SUB_STYLE = "words"; WORDS_TAG = False; WORDS_Y = 1300; WORDS_SIZE = 92
 AA = 0.35
@@ -208,7 +208,7 @@ def s9(lt, D):
     for cx_, dr, col, nm, rho in ((290, d_f, (90, 200, 140), "ПРЕСНАЯ", "1,000"), (790, d_s, ICE, "МОРЕ", "1,025")):
         hp = [(cx_ - 190, WL + dr - 150), (cx_ + 190, WL + dr - 150), (cx_ + 150, WL + dr), (cx_ - 150, WL + dr)]; d.polygon(hp, fill=STEEL + (255,), outline=(205, 215, 235, 255))
         d.rectangle((cx_ - 45, WL + dr - 205, cx_ + 45, WL + dr - 150), fill=(96, 106, 124, 255))
-        tx(d, (cx_, WL + 330), nm, 30, col, a=u); tx(d, (cx_, WL + 390), rho + " т/м³", 40, col, a=u)
+        tx(d, (cx_, WL + 225), nm, 34, WHT, a=u); tx(d, (cx_, WL + 280), rho + " т/м³", 44, col, a=u)
     im.alpha_composite(lay); water_over(im, lt, a=0.5); lay, d = layer()
     B.tracked(d, (540, 350), "ГЛУБЖЕ В ПРЕСНОЙ", 50, GOLD, u=P(9, lt, 0, 0.0, 0.7)); tx(d, (540, 1130), "(РАЗНИЦА ПОКАЗАНА С ЗАПАСОМ)", 24, DIM, a=P(9, lt, 1, 0.4, 0.9), w="Medium")
     return fin(im, lay, lt, k=0.7)
