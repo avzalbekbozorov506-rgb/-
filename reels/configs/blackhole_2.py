@@ -25,7 +25,8 @@ def dashed(d, c, r, col, w=6, n=48, upto=1.0):
     for i in range(int(n * upto)):
         if i % 2 == 0: d.arc((c[0] - r, c[1] - r, c[0] + r, c[1] + r), i * 360 / n, (i + 0.9) * 360 / n, fill=col, width=w)
 def lab(d, xy, s, size=44, col=WHT, a=1.0, w="Bold"):
-    col = tuple(int(v * a) for v in col); txt(d, xy, s, size, col, w)
+    if a < 0.03: return
+    a = min(a, 1.0); col = lerp((5, 7, 15), col, a); txt(d, xy, s, size, col, w)
 # ---------- сцена 1: «Есть место без возврата. Узнаешь, что там с упавшим.»
 def s1(lt, D):
     im = canvas(); d = ImageDraw.Draw(im); c = (CX, 640)
@@ -48,13 +49,13 @@ def s2(lt, D):
     if k > 0:
         dashed(d, c, R, YEL if lt < T(1, 1, 0.6) else RED, w=8, upto=k)
     if lt >= T(1, 1, 0.55):
-        a = P(1, lt, 1, 0.55, 0.8); lab(d, (CX, 1000), "ГОРИЗОНТ СОБЫТИЙ", 54, RED, a=a); arrow(d, (CX, 960), (CX, 905), col=RED, w=8) if a > 0.5 else None
+        a = P(1, lt, 1, 0.55, 0.8); lab(d, (CX, 990), "ГОРИЗОНТ СОБЫТИЙ", 50, RED, a=a); arrow(d, (CX, 950), (CX, 905), col=RED, w=8) if a > 0.5 else None
     kk = P(1, lt, 2, 0.15, 0.7)
     if kk > 0:
         def bez(p0, p1, p2, t): return ((1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * p1[0] + t * t * p2[0], (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * p1[1] + t * t * p2[1])
         A = ((120, 520), (540, 220), (980, 520)); pts = [bez(*A, kk * i / 40) for i in range(41)]; d.line(pts, fill=(255, 250, 200), width=8); circ(d, pts[-1], 13, fill=(255, 255, 255))
         B = ((c[0] + 40, c[1] - 10), (c[0] + 170, c[1] - 130), (c[0] + 10, c[1] + 80)); pts = [bez(*B, kk * i / 40) for i in range(41)]; d.line(pts, fill=(255, 120, 80), width=8); circ(d, pts[-1], 13, fill=(255, 255, 255))
-        lab(d, (CX, 960 if lt < T(1, 1, 0.55) else 1060), "СВЕТ НЕ ВЫХОДИТ", 48, (255, 160, 120), a=P(1, lt, 2, 0.5, 0.9))
+        lab(d, (CX, 1085), "СВЕТ НЕ ВЫХОДИТ", 42, (255, 160, 120), a=P(1, lt, 2, 0.5, 0.9))
     return finish(im)
 # ---------- сцена 3: «Но быстрее света ничего нет. Поэтому не вернётся ничто.»
 def s3(lt, D):
@@ -71,7 +72,7 @@ def s3(lt, D):
         u = P(2, lt, 1, 0.1 + j * 0.09, 0.45 + j * 0.09); ang = math.pi * (0.1 + j * 0.37)
         sx, sy = cc[0] + 420 * math.cos(ang) * (1 - u), cc[1] + 260 * math.sin(ang) * (1 - u) - 60 * (1 - u)
         if u < 0.95: circ(d, (sx, sy), 11, fill=(255, 255, 255, int(255 * (1 - u * 0.2))))
-    lab(d, (CX, 1115 if False else 760), "ВЕРНУЛОСЬ: " + str(0), 56, YEL, a=P(2, lt, 1, 0.0, 0.2))
+    lab(d, (CX, 710), "ВЕРНУЛОСЬ: 0", 56, YEL, a=P(2, lt, 0, 0.9, 1.0))
     return finish(im)
 # ---------- сцена 4: часы (падаешь; у тебя идут; снаружи замедляются; почти замирают)
 def dial(d, c, r, tick, col, label, sub=None, frac=0.0):
@@ -81,39 +82,42 @@ def dial(d, c, r, tick, col, label, sub=None, frac=0.0):
     a = (tick + frac) * math.pi / 6; d.line([c, (c[0] + (r - 30) * math.sin(a), c[1] - (r - 30) * math.cos(a))], fill=col, width=8)
     txt(d, (c[0], c[1] - r - 50), label, 44, col, "Bold"); txt(d, (c[0], c[1] + r + 70), f"{tick} с", 70, col, "Bold")
 def s4(lt, D):
-    im = canvas(); d = ImageDraw.Draw(im); bh = (CX, 470)
+    im = canvas(); d = ImageDraw.Draw(im); bh = (CX, 570)
     circ(d, bh, 70, fill=(0, 0, 0)); dashed(d, bh, 96, RED, w=5)
-    u = lt / D; y = 190 + 150 * (1 - math.exp(-3.2 * P(3, lt, 0, 0.3, 1.0) - 3.2 * seg(lt, T(3, 1, 0), T(3, 3, 1.0)) * 0))
-    y = 190 + 135 * (1 - (1 - seg(lt, T(3, 0, 0.3), T(3, 3, 1.0))) ** 2.6)
+    y = 300 + 150 * (1 - (1 - seg(lt, T(3, 0, 0.3), T(3, 3, 1.0))) ** 2.6)
     circ(d, (CX, y), 13, fill=(255, 255, 255)); lab(d, (CX + 90, y), "ТЫ", 40, WHT, a=P(3, lt, 0, 0.3, 0.6))
-    a1 = P(3, lt, 1, 0.0, 0.2)
-    t1 = int(lt >= T(3, 1, 0.1)) + int(lt >= T(3, 1, 0.5)) + int(lt >= T(3, 1, 0.9))
-    if a1 > 0: dial(d, (300, 820), 130, t1, YEL, "У ТЕБЯ")
+    if lt >= T(3, 1, 0.0):
+        t1 = int((lt - T(3, 1, 0.05)) / 0.8) + 1 if lt >= T(3, 1, 0.05) else 0
+        dial(d, (300, 850), 130, t1, YEL, "У ТЕБЯ")
     if lt >= T(3, 2, 0.0):
-        t2 = int(lt >= T(3, 2, 0.15)) + int(lt >= T(3, 2, 0.55)) + int(lt >= T(3, 2, 0.95)) * 0 + int(lt >= T(3, 3, 0.25)) * 0
-        t2 = int(lt >= T(3, 2, 0.1)) + int(lt >= T(3, 2, 0.8))
-        dial(d, (780, 820), 130, t2, RED, "СНАРУЖИ")
-        if lt >= T(3, 3, 0.0):
-            bl = int(lt * 5) % 2; lab(d, (780, 1030), "ПОЧТИ СТОП", 46, RED, a=0.5 + 0.5 * bl)
-            lab(d, (CX, 1085), "со стороны наблюдателя", 34, DIM, a=P(3, lt, 3, 0.2, 0.5), w="Medium") if False else None
-    if lt >= T(3, 3, 0.2): lab(d, (CX, 1085), "СНАРУЖИ — СО СТОРОНЫ НАБЛЮДАТЕЛЯ", 32, DIM, a=P(3, lt, 3, 0.2, 0.5), w="Medium")
+        marks = [T(3, 2, 0.1), T(3, 2, 0.1) + 1.0, T(3, 2, 0.1) + 2.2, T(3, 2, 0.1) + 4.0]
+        t2 = sum(1 for m in marks if lt >= m)
+        stop = lt >= T(3, 3, 0.45)
+        dial(d, (780, 850), 130, t2, RED, "СНАРУЖИ") if not stop else None
+        if stop:
+            circ(d, (780, 850), 130, outline=RED, width=8); circ(d, (780, 850), 6, fill=RED)
+            for k in range(12):
+                a = k * math.pi / 6; d.line([(780 + 112 * math.sin(a), 850 - 112 * math.cos(a)), (780 + 126 * math.sin(a), 850 - 126 * math.cos(a))], fill=RED, width=4)
+            a = t2 * math.pi / 6; d.line([(780, 850), (780 + 100 * math.sin(a), 850 - 100 * math.cos(a))], fill=RED, width=8)
+            lab(d, (780, 1050), "ПОЧТИ СТОП", 56, RED, a=0.55 + 0.45 * (int(lt * 4) % 2))
+    if lt >= T(3, 2, 0.2): lab(d, (780, 1100), "со стороны наблюдателя", 30, DIM, a=P(3, lt, 2, 0.2, 0.6), w="Medium")
     return finish(im)
 # ---------- сцена 5: рехук — приливные силы
 def s5(lt, D):
-    im = canvas(); d = ImageDraw.Draw(im); c = (CX, 330)
-    circ(d, (CX, 280), 110, fill=(0, 0, 0)); ring(d, (CX, 280), 116, col=RED, w=10, a=0.9)
-    fl = 0.8 * (1 - seg(lt, T(4, 0, 0.0), T(4, 0, 0.0) + 0.45))
-    k = P(4, lt, 1, 0.3, 0.9); s = P(4, lt, 2, 0.0, 0.9)
-    top = 470 + 0 * k; bw, bh = 120, 120
-    h = bh * 3 + 380 * s; x0 = CX - bw / 2
-    wid = bw * (1 - 0.8 * s)
+    im = canvas(); d = ImageDraw.Draw(im)
+    circ(d, (CX, 330), 90, fill=(0, 0, 0)); ring(d, (CX, 330), 96, col=RED, w=10, a=0.9)
+    fl = 0.8 * (1 - seg(lt, T(4, 0, 0.0), T(4, 0, 0.0) + 0.45)) if lt >= T(4, 0, 0.0) else 0
+    k = P(4, lt, 1, 0.3, 0.9); sp = P(4, lt, 2, 0.0, 0.9)
+    top = 560; h = 300 + 280 * sp; wid = 120 * (1 - 0.75 * sp)
     d.rectangle((CX - wid / 2, top, CX + wid / 2, top + h), fill=(240, 244, 255))
     for j in range(1, 3): d.line([(CX - wid / 2, top + h * j / 3), (CX + wid / 2, top + h * j / 3)], fill=(60, 80, 120), width=4)
     if k > 0:
-        arrow(d, (CX + 170, top + h - 10), (CX + 170, top + h - 10 + 190 * k), col=RED, w=12); lab(d, (CX + 290, top + h + 70), "СИЛЬНО", 38, RED, a=k)
-        arrow(d, (CX + 170, top + 10), (CX + 170, top + 10 + 60 * k), col=YEL, w=12); lab(d, (CX + 290, top + 80), "СЛАБЕЕ", 38, YEL, a=k)
-    lab(d, (CX, 1010 if False else 1080), "ПРИЛИВНЫЕ СИЛЫ", 48, RED, a=P(4, lt, 1, 0.2, 0.5) * (1 - 0.0))
-    if s > 0.2: lab(d, (CX, 1040), "СПАГЕТТИФИКАЦИЯ", 54, YEL, a=P(4, lt, 2, 0.1, 0.4))
+        arrow(d, (CX + 170, top + h - 20 - 160 * k), (CX + 170, top + h - 20), col=RED, w=12) if False else None
+        arrow(d, (CX + 170, top + h - 30), (CX + 170, top + h - 30 + 120 * k), col=RED, w=12); lab(d, (CX + 330, top + h + 20), "СИЛЬНО", 38, RED, a=k)
+        arrow(d, (CX + 170, top + 20), (CX + 170, top + 20 + 40 * k), col=YEL, w=12); lab(d, (CX + 330, top + 40), "СЛАБЕЕ", 38, YEL, a=k)
+    ta = P(4, lt, 1, 0.2, 0.5) * (1 - P(4, lt, 2, 0.0, 0.2))
+    lab(d, (CX, 475), "ПРИЛИВНЫЕ СИЛЫ", 50, RED, a=ta)
+    lab(d, (CX, 475), "СПАГЕТТИФИКАЦИЯ", 54, YEL, a=P(4, lt, 2, 0.15, 0.45))
     return flash(finish(im), fl)
 # ---------- сцена 6: центр Галактики
 def s6(lt, D):
@@ -124,11 +128,11 @@ def s6(lt, D):
         x = c[0] + r * math.cos(a); y = c[1] + r * 0.5 * math.sin(a); b = int(100 + 150 * (1 - t))
         if 0 <= x < W and 0 <= y < 1100: circ(d, (x, y), 2.5, fill=(b, b, min(255, b + 40)))
     circ(d, c, 12, fill=(255, 220, 120)); lab(d, (CX, 330), "ЦЕНТР МЛЕЧНОГО ПУТИ", 46, WHT, a=P(5, lt, 0, 0.3, 0.7))
-    n = P(5, lt, 1, 0.1, 0.8); cnt = int(4_000_000 * n)
+    n = P(5, lt, 1, 0.05, 0.65); cnt = int(4_000_000 * n)
     for j in range(int(26 * n)):
         a = j * 2.4; r = 70 + 9 * j; circ(d, (c[0] + r * math.cos(a), c[1] + r * 0.5 * math.sin(a)), 9, fill=YEL)
     if lt >= T(5, 1, 0.05): lab(d, (CX, 930), f"{cnt:,}".replace(",", " ") + " СОЛНЦ", 66, YEL)
-    k = P(5, lt, 2, 0.1, 0.85)
+    k = P(5, lt, 2, 0.05, 0.7)
     if k > 0:
         d.line([(170, 1040), (170 + 740 * k, 1040)], fill=WHT, width=6); circ(d, (170, 1040), 12, fill=(60, 140, 255)); circ(d, (170 + 740 * k, 1040), 10, fill=(255, 255, 255))
         lab(d, (CX, 1020 if False else 990), f"{int(26000 * k):,}".replace(",", " ") + " СВЕТОВЫХ ЛЕТ", 50, WHT)
