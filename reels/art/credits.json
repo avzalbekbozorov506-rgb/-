@@ -509,5 +509,15 @@
   "source": "NASA Image and Video Library",
   "nasa_id": "ED07-0079-03",
   "license": "Public domain (NASA)"
+ },
+ "nasa_intrepid": {
+  "source": "NASA Image and Video Library",
+  "nasa_id": "KSC-2012-2818",
+  "license": "Public domain (NASA)"
+ },
+ "nasa_shuttle_nyc": {
+  "source": "NASA Image and Video Library",
+  "nasa_id": "201204270023HQ",
+  "license": "Public domain (NASA)"
  }
 }
