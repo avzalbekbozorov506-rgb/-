@@ -1,5 +1,5 @@
 """«Больше 27 000 тонн. Почему не тонет?» — формат «Простым языком», моушен-графика кодом (закон Архимеда).
-Фото: NASA Image and Video Library (общественное достояние): KSC-2012-2818 (авианосец-музей «Интрепид»), 201204270023HQ.
+Фото: NASA Image and Video Library (общественное достояние): KSC-2012-2818 (авианосец-музей «Интрепид»).
 Факты и текст: scripts/ship_float_1.md."""
 import os, sys, math; sys.path.insert(0, os.path.dirname(__file__)); from _voice3 import *
 import numpy as np
@@ -10,7 +10,7 @@ from bh_cine import W, H, ease, seg, lerp, fnt
 HEAD = ("ПРОСТЫМ ЯЗЫКОМ", "ПОЧЕМУ КОРАБЛЬ НЕ ТОНЕТ")
 TITLE = ("", "", "")
 HOOK = ("БОЛЕЕ 27 000 ТОНН.\nПОЧЕМУ НЕ ТОНЕТ?", 2.6)
-HOOK_Y = 1000
+HOOK_Y = 1060
 MUSIC = ("music/ogv_aria.mp3", 0)
 SUB_STYLE = "words"; WORDS_TAG = False; WORDS_Y = 1300; WORDS_SIZE = 92
 AA = 0.35
@@ -24,7 +24,7 @@ def ph(i, k):
 def T(i, k, f=0.0): st, en, _ = ph(i, k); return st + f * (en - st)
 def P(i, lt, k, f0=0.0, f1=1.0): return seg(lt, T(i, k, f0), T(i, k, f1))
 def layer(): lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); return lay, ImageDraw.Draw(lay)
-def fin(base, lay=None, lt=0.0, shake=1.5, k=0.6, streak=0.3, ca=2):
+def fin(base, lay=None, lt=0.0, shake=1.5, k=0.6, streak=0.08, ca=2):
     base = base.convert("RGBA")
     if lay is not None: base.alpha_composite(lay)
     return B.finish_c(base, k=k, streak=streak, shake=shake, lt=lt, ca=ca)
@@ -32,6 +32,7 @@ def tx(d, xy, s, size, col=WHT, a=1.0, w="Bold", anchor="mm"):
     if a < 0.03: return
     d.text(xy, s, font=fnt(size, w), fill=col + (int(255 * min(a, 1)),), anchor=anchor, stroke_width=2, stroke_fill=(0, 0, 0, int(140 * min(a, 1))))
 def pill(d, xy, s, size, col, a=1.0, w="Bold"):
+    size = max(size, 34)
     if a < 0.03: return
     f = fnt(size, w); tw = d.textlength(s, font=f); x, y = xy
     d.rounded_rectangle((x - tw / 2 - 18, y - size * 0.75, x + tw / 2 + 18, y + size * 0.75), int(size * 0.75), fill=(6, 9, 18, int(200 * a)), outline=col + (int(200 * a),), width=2)
@@ -44,14 +45,14 @@ def grid_bg(lt, a=1.0):
     return im
 CX = 540; WL = 800          # центр и уровень воды
 SEA = (20, 70, 130); STEEL = (112, 122, 138); AIRC = (150, 205, 255)
-def hull_poly(cy_bot, w=560, h=210, bw=0.82):
-    top = cy_bot - h; return [(CX - w / 2, top), (CX + w / 2, top), (CX + w / 2 * bw, cy_bot), (CX - w / 2 * bw, cy_bot)]
+def hull_poly(cy_bot, w=560, h=210, bw=0.82, cx=CX):
+    top = cy_bot - h; return [(cx - w / 2, top), (cx + w / 2, top), (cx + w / 2 * bw, cy_bot), (cx - w / 2 * bw, cy_bot)]
 _SKY = {}
 def sky_bg(lt):
     """Фон над водой: размытое небо с настоящего фото NASA, затемнённое, с лёгким дрейфом."""
     if "bg" not in _SKY:
         im = Image.open(f"{K.HERE}/art/nasa_intrepid.jpg").convert("RGB"); w0, h0 = im.size
-        top = im.crop((0, 0, w0, int(h0 * 0.32))).resize((int(W * 1.3), int(WL * 1.05)), Image.BILINEAR).filter(ImageFilter.GaussianBlur(14))
+        top = im.crop((0, 0, w0, int(h0 * 0.32))).resize((int(W * 1.3), int(WL * 1.05)), Image.BILINEAR).filter(ImageFilter.GaussianBlur(28))
         arr = np.asarray(top).astype(np.float32) * np.array([0.22, 0.3, 0.45], np.float32); yy = np.linspace(0.35, 1.0, arr.shape[0], dtype=np.float32)[:, None, None]
         _SKY["bg"] = Image.fromarray(np.clip(arr * (0.45 + 0.55 * yy), 0, 255).astype(np.uint8))
     bg = _SKY["bg"]; ox = int((bg.width - W) * (0.5 + 0.4 * math.sin(lt * 0.15)))
@@ -80,12 +81,15 @@ def water_over(im, lt, wl=WL, a=0.62, bottom=1180, tint=SEA):
     xs = np.arange(0, W + 20, 20); ys = wl + 7 * np.sin(xs / 85.0 + lt * 2.2) + 3 * np.sin(xs / 33.0 - lt * 3.1)
     line = [(int(x), float(y)) for x, y in zip(xs, ys)]; d.line(line, fill=(210, 240, 255, 240), width=4)
     gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(gl).line(line, fill=(150, 215, 255, 255), width=10); im.alpha_composite(gl.filter(ImageFilter.GaussianBlur(9))); im.alpha_composite(lay)
+    fd = Image.new('RGBA', (W, H), (0, 0, 0, 0)); fdd = ImageDraw.Draw(fd)
+    for y in range(bottom - 90, bottom + 1): fdd.line([(0, y), (W, y)], fill=BG + (int(255 * (y - (bottom - 90)) / 90),))
+    im.alpha_composite(fd)
 _GR = {}
-def hull_draw(im, bot, lt, air=1.0, wl=WL, fill_in=0.0, ghost=0.0, tilt=0.0, cav=True, w=560, h=210, label=None, bob=True):
+def hull_draw(im, bot, lt, air=1.0, wl=WL, fill_in=0.0, ghost=0.0, tilt=0.0, cav=True, w=560, h=210, label=None, bob=True, cx=CX):
     """Корпус в разрезе: стальной градиент, подсветка кромок, окна, воздух внутри (светящиеся точки). ghost — вытесненная вода."""
     if bob: bot = bot + 5 * math.sin(lt * 1.7); tilt = tilt + 1.1 * math.sin(lt * 1.3)
     lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
-    P = hull_poly(bot, w, h); top = bot - h; t = 26
+    P = hull_poly(bot, w, h, cx=cx); top = bot - h; t = 26
     key = (w, h)
     m = Image.new("L", (W, H), 0); ImageDraw.Draw(m).polygon(P, fill=255)
     grad = np.linspace(0, 1, H, dtype=np.float32)[:, None, None]; yv = np.clip((np.arange(H)[:, None, None] - top) / max(h, 1), 0, 1)
@@ -100,9 +104,9 @@ def hull_draw(im, bot, lt, air=1.0, wl=WL, fill_in=0.0, ghost=0.0, tilt=0.0, cav
             if air > 0.02 and rng.random() < air + 0.02: r = 3; d.ellipse((px - r, py - r, px + r, py + r), fill=AIRC + (int(200 * air),))
         if fill_in > 0.01:
             yy_ = (bot - t) - fill_in * (bot - t - (top + t)); d.polygon([(inner[3][0], bot - t), (inner[2][0], bot - t), (inner[2][0], yy_), (inner[3][0], yy_)], fill=SEA + (230,))
-    d.rectangle((CX - 70, top - 62, CX + 70, top), fill=(120, 132, 154, 255), outline=(225, 235, 255, 255), width=2); d.rectangle((CX - 8, top - 120, CX + 8, top - 62), fill=(120, 132, 154, 255))
-    for k in range(5): d.rectangle((CX - 56 + k * 24, top - 46, CX - 42 + k * 24, top - 34), fill=(255, 214, 120, 255))
-    if tilt: lay = lay.rotate(tilt, center=(CX, bot - h / 2), resample=Image.BICUBIC)
+    d.rectangle((cx - 70, top - 62, cx + 70, top), fill=(120, 132, 154, 255), outline=(225, 235, 255, 255), width=2); d.rectangle((cx - 8, top - 120, cx + 8, top - 62), fill=(120, 132, 154, 255))
+    for k in range(5): d.rectangle((cx - 56 + k * 24, top - 46, cx - 42 + k * 24, top - 34), fill=(255, 214, 120, 255))
+    if tilt: lay = lay.rotate(tilt, center=(cx, bot - h / 2), resample=Image.BICUBIC)
     glow = lay.filter(ImageFilter.GaussianBlur(14)); glow.putalpha(glow.getchannel("A").point(lambda v: int(v * 0.25))); im.alpha_composite(glow); im.alpha_composite(lay)
     if ghost > 0.01:
         m2 = Image.new("L", (W, H), 0); ImageDraw.Draw(m2).polygon(P, fill=255); wm = Image.new("L", (W, H), 0); ImageDraw.Draw(wm).rectangle((0, wl, W, H), fill=255)
@@ -110,7 +114,7 @@ def hull_draw(im, bot, lt, air=1.0, wl=WL, fill_in=0.0, ghost=0.0, tilt=0.0, cav
         ol = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(ol).polygon(P, outline=(255, 226, 120, int(255 * ghost)), width=4); ol.putalpha(ImageChops.multiply(ol.getchannel("A"), wm)); im.alpha_composite(ol)
     return P
 def sea_scene(lt, bot, **kw):
-    im = sky_bg(lt); P = hull_draw(im, bot, lt, **{k: v for k, v in kw.items() if k not in ("wl_a",)}); water_over(im, lt, a=kw.get("wl_a", 0.55)); return im, P
+    im = sky_bg(lt); ImageDraw.Draw(im).text((W - 40, 1150), "СХЕМА · НЕ В МАСШТАБЕ", font=fnt(24, "Medium"), fill=(150, 175, 215, 200), anchor="rm"); P = hull_draw(im, bot, lt, **{k: v for k, v in kw.items() if k not in ("wl_a",)}); water_over(im, lt, a=kw.get("wl_a", 0.55)); return im, P
 def force_arrows(im, bot, up, down, a=1.0):
     K.arrow_glow(im, (CX, bot - 105), (CX, bot - 105 - up), (110, 215, 255), w=14, head=46, a=a)
     K.arrow_glow(im, (CX - 150, bot - 105), (CX - 150, bot - 105 + down), GOLD, w=14, head=46, a=a)
@@ -121,13 +125,13 @@ def s0(lt, D):
     if a > 0:
         B.reticle(d, (400, 800), 170, GOLD + (int(220 * a),), u=a, ticks=36, w=2)
         B.leader(d, (330, 690), (300, 560), (90, 560), GOLD + (220,), u=a); pill(d, (270, 520), "БОЛЕЕ 27 000 Т", 28, GOLD, a=P(0, lt, 0, 0.5, 1.0))
-        tx(d, (540, 330), "«ИНТРЕПИД», НЬЮ-ЙОРК · СТАНДАРТНОЕ ВОДОИЗМЕЩЕНИЕ", 24, WHT, a=P(0, lt, 1, 0.2, 0.8), w="Medium")
+        tx(d, (540, 330), "«ИНТРЕПИД», НЬЮ-ЙОРК · СТАНДАРТНОЕ ВОДОИЗМЕЩЕНИЕ", 30, WHT, a=P(0, lt, 1, 0.2, 0.8), w="Medium")
     return fin(im, lay, lt, shake=2.0 * P(0, lt, 1, 0.5, 1.0) + 1.0, k=0.45, streak=0.3)
 # ---------- 1. сталь + воздух
 def s1(lt, D):
     im, Pp = sea_scene(lt, WL + 120, air=1.0); lay, d = layer()
     a0 = P(1, lt, 0, 0.3, 0.8); a1 = P(1, lt, 1, 0.3, 0.8)
-    B.tracked(d, (540, 300), "СТАЛЬ + ВОЗДУХ", 44, ICE, u=P(1, lt, 0, 0.0, 0.7))
+    B.tracked(d, (540, 350), "СТАЛЬ + ВОЗДУХ", 50, ICE, u=P(1, lt, 0, 0.0, 0.7))
     if a0 > 0: B.leader(d, (CX - 262, WL - 20), (CX - 340, WL - 160), (80, WL - 160), GOLD + (230,), u=a0); pill(d, (200, WL - 200), "СТАЛЬ", 28, GOLD, a=a0)
     if a1 > 0: B.leader(d, (CX + 20, WL - 40), (CX + 160, WL - 250), (CX + 360, WL - 250), ICE + (230,), u=a1); pill(d, (CX + 290, WL - 292), "ВОЗДУХ", 28, ICE, a=a1)
     return fin(im, lay, lt, k=0.7)
@@ -141,34 +145,35 @@ def s3(lt, D):
     im = sky_bg(lt); lay, d = layer(); fall = P(3, lt, 0, 0.1, 1.0) * 0 + seg(lt, T(3, 0, 0.2), T(3, 1, 0.55))
     y = 470 + 560 * fall ** 1.6; d.rounded_rectangle((CX - 110, y - 110, CX + 110, y + 110), 14, fill=STEEL + (255,), outline=(205, 215, 235, 255), width=3)
     im.alpha_composite(lay); water_over(im, lt, a=0.5); lay, d = layer()
-    B.tracked(d, (540, 300), "СТАЛЬ ТОНЕТ", 44, ICE, u=P(3, lt, 0, 0.0, 0.7))
+    B.tracked(d, (540, 350), "СТАЛЬ ТОНЕТ", 50, ICE, u=P(3, lt, 0, 0.0, 0.7))
     u = P(3, lt, 1, 0.2, 0.9)
-    if u > 0: tx(d, (300, 1150), "СТАЛЬ", 30, DIM, a=u); tx(d, (300, 1205), "7,8 т/м³", 56, GOLD, a=u); tx(d, (780, 1150), "ВОДА", 30, DIM, a=u); tx(d, (780, 1205), "1,0 т/м³", 56, ICE, a=u)
+    if u > 0: tx(d, (300, 1010), "СТАЛЬ", 34, WHT, a=u); tx(d, (300, 1075), "7,8 т/м³", 60, GOLD, a=u); tx(d, (780, 1010), "ВОДА", 34, WHT, a=u); tx(d, (780, 1075), "1,0 т/м³", 60, ICE, a=u)
     return fin(im, lay, lt, k=0.7)
 # ---------- 4. закон Архимеда
 def s4(lt, D):
     bot = WL + 130; gh = P(4, lt, 0, 0.3, 0.9); im, Pp = sea_scene(lt, bot, ghost=gh); lay, d = layer()
     tx(d, (780, WL + 190), "ВЫТЕСНЕННАЯ ВОДА", 28, GOLD, a=gh)
     u = P(4, lt, 1, 0.2, 0.8); u2 = P(4, lt, 2, 0.2, 0.8)
-    if u > 0: K.arrow_glow(im, (CX, WL + 60), (CX, WL + 60 - 380 * u), (110, 215, 255), w=16, head=50); pill(d, (CX + 220, WL - 170), "ВЫТАЛКИВАНИЕ", 28, (110, 215, 255), a=u)
-    if u2 > 0: K.arrow_glow(im, (CX - 190, WL - 100), (CX - 190, WL - 100 + 300 * u2), GOLD, w=14, head=46); pill(d, (CX - 300, WL - 170), "ВЕС", 28, GOLD, a=u2)
-    B.tracked(d, (540, 300), "ЗАКОН АРХИМЕДА", 44, WHT, u=P(4, lt, 3, 0.0, 0.7))
+    if u > 0: K.arrow_glow(im, (CX, WL + 60), (CX, WL + 60 - 340 * u), (110, 215, 255), w=16, head=50); pill(d, (CX + 220, WL - 170), "ВЫТАЛКИВАНИЕ", 28, (110, 215, 255), a=u)
+    if u2 > 0: K.arrow_glow(im, (CX - 190, WL - 140), (CX - 190, WL - 140 + 340 * u2), GOLD, w=14, head=46); pill(d, (CX - 300, WL - 170), "ВЕС", 28, GOLD, a=u2)
+    B.tracked(d, (540, 350), "ЗАКОН АРХИМЕДА", 50, WHT, u=P(4, lt, 3, 0.0, 0.7))
+    if u2 > 0.6: pill(d, (CX, WL - 330), "СИЛЫ РАВНЫ", 34, WHT, a=min(1, (u2 - 0.6) * 2.5))
     return fin(im, lay, lt, k=0.7)
 # ---------- 5. та же сталь: брусок тонет, корпус плывёт
 def s5(lt, D):
     im = sky_bg(lt); lay, d = layer(); k0 = P(5, lt, 0, 0.0, 0.7)
     y = 760 + 220 * ease(P(5, lt, 0, 0.1, 0.9)); d.rounded_rectangle((250 - 70, y - 70, 250 + 70, y + 70), 10, fill=STEEL + (255,), outline=(205, 215, 235, 255), width=3)
-    im.alpha_composite(lay); P_ = hull_draw(im, WL + 70 + 40 * (1 - P(5, lt, 1, 0.1, 0.8)), lt, w=440, h=150, cav=True)
+    im.alpha_composite(lay); P_ = hull_draw(im, WL + 70 + 40 * (1 - P(5, lt, 1, 0.1, 0.8)), lt, w=440, h=150, cav=True, cx=CX + 170)
     # корпус сдвигаем вправо: рисуем отдельно
     water_over(im, lt, a=0.5); lay, d = layer()
-    tx(d, (250, 1130), "ТА ЖЕ СТАЛЬ", 30, DIM, a=k0); tx(d, (CX + 120, 1130), "ТА ЖЕ СТАЛЬ", 30, DIM, a=k0)
-    B.tracked(d, (540, 300), "ФОРМА РЕШАЕТ", 44, GOLD, u=P(5, lt, 1, 0.1, 0.8))
+    tx(d, (250, 1040), "ТА ЖЕ СТАЛЬ", 34, WHT, a=k0); tx(d, (CX + 170, 1040), "ТА ЖЕ СТАЛЬ", 34, WHT, a=k0)
+    B.tracked(d, (540, 350), "ФОРМА РЕШАЕТ", 50, GOLD, u=P(5, lt, 1, 0.1, 0.8))
     return fin(im, lay, lt, k=0.7)
 # ---------- 6. ватерлиния
 def s6(lt, D):
     s = P(6, lt, 0, 0.0, 0.9); bot = WL - 20 + 150 * s; kg = 27000 * (s ** 1.0)
-    im, Pp = sea_scene(lt, bot, ghost=0.7 * s); lay, d = layer()
-    tx(d, (300, 380), "ВЫТЕСНЕНО", 30, DIM, a=1); tx(d, (300, 450), f"{kg:,.0f} Т".replace(",", " "), 70, GOLD, a=1)
+    im, Pp = sea_scene(lt, bot, ghost=0.7 * s, bob=False); lay, d = layer()
+    tx(d, (300, 420), "ВЫТЕСНЕНО", 30, DIM, a=1); tx(d, (300, 450), f"{kg:,.0f} Т".replace(",", " "), 70, GOLD, a=1)
     u = P(6, lt, 1, 0.3, 0.9)
     if u > 0: d.rounded_rectangle((120, 1010, 960, 1110), 16, fill=(10, 14, 26, int(230 * u)), outline=GOLD + (int(220 * u),), width=2); tx(d, (540, 1060), "ВЫТЕСНЕНО  =  ВЕС", 44, GOLD, a=u)
     w3 = P(6, lt, 2, 0.2, 0.8)
@@ -177,7 +182,7 @@ def s6(lt, D):
     return fin(im, lay, lt, k=0.7)
 # ---------- 7. десять олимпийских бассейнов
 def s7(lt, D):
-    im = grid_bg(lt); lay, d = layer(); B.tracked(d, (540, 300), "ВОДА НА 27 000 Т", 40, ICE, u=P(7, lt, 0, 0.0, 0.7))
+    im = grid_bg(lt); lay, d = layer(); B.tracked(d, (540, 350), "ВОДА НА 27 000 Т", 50, ICE, u=P(7, lt, 0, 0.0, 0.7))
     n = P(7, lt, 1, 0.1, 0.8) * 10.4
     for i in range(11):
         r, c = divmod(i, 3); x0 = 140 + c * 280; y0 = 440 + r * 150; fill = min(max(n - i, 0), 1)
@@ -205,14 +210,14 @@ def s9(lt, D):
         d.rectangle((cx_ - 45, WL + dr - 205, cx_ + 45, WL + dr - 150), fill=(96, 106, 124, 255))
         tx(d, (cx_, WL + 330), nm, 30, col, a=u); tx(d, (cx_, WL + 390), rho + " т/м³", 40, col, a=u)
     im.alpha_composite(lay); water_over(im, lt, a=0.5); lay, d = layer()
-    B.tracked(d, (540, 300), "ГЛУБЖЕ В ПРЕСНОЙ", 40, GOLD, u=P(9, lt, 0, 0.0, 0.7)); tx(d, (540, 1130), "(РАЗНИЦА ПОКАЗАНА С ЗАПАСОМ)", 24, DIM, a=P(9, lt, 1, 0.4, 0.9), w="Medium")
+    B.tracked(d, (540, 350), "ГЛУБЖЕ В ПРЕСНОЙ", 50, GOLD, u=P(9, lt, 0, 0.0, 0.7)); tx(d, (540, 1130), "(РАЗНИЦА ПОКАЗАНА С ЗАПАСОМ)", 24, DIM, a=P(9, lt, 1, 0.4, 0.9), w="Medium")
     return fin(im, lay, lt, k=0.7)
 # ---------- 10. финал: тот же авианосец
 def s10(lt, D):
     im = K.photo("nasa_intrepid", lt + 4, D + 4, z0=1.12, z1=1.2, fx=0.6, fy=0.62, cy=700).convert("RGBA"); lay, d = layer(); a = P(10, lt, 1, 0.2, 0.8)
     for k in range(7):
         x = 180 + k * 120; y0 = 900; K.arrow_glow(im, (x, y0 + 120), (x, y0 + 120 - 90 * a), (110, 215, 255), w=8, head=26, a=a)
-    B.tracked(d, (540, 300), "ДЕРЖИТ ВОДА", 44, ICE, u=a)
+    B.tracked(d, (540, 350), "ДЕРЖИТ ВОДА", 50, ICE, u=a)
     return fin(im, lay, lt, k=0.45, streak=0.3)
 # ---------- 11. концовка
 def s11(lt, D):
