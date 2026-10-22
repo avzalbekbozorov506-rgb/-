@@ -106,12 +106,12 @@ def s4(lt, D):
     pts = [p_ for p_ in pts if p_[1] > 270]; trail(im, pts, col, width=3, a=0.7) if len(pts) > 1 else None
     B.dot_glow(im, (540, y), 9, col); tx(d, (630, y), "ТЫ", 32, col, a=P(3, lt, 0, 0.3, 0.6), w="Medium")
     if lt >= T(3, 1, 0.0):
-        t1 = int((lt - T(3, 1, 0.05)) / 0.8) + 1 if lt >= T(3, 1, 0.05) else 0; dial(d, (300, 800), 135, t1, GOLD, "У ТЕБЯ")
+        t1 = int((lt - T(3, 1, 0.05)) / 0.8) + 1 if lt >= T(3, 1, 0.05) else 0; dial(d, (300, 770), 135, t1, GOLD, "У ТЕБЯ")
     if lt >= T(3, 2, 0.0):
         marks = [T(3, 2, 0.1), T(3, 2, 0.1) + 1.0, T(3, 2, 0.1) + 2.2, T(3, 2, 0.1) + 4.0]; t2 = sum(1 for m in marks if lt >= m); stop = lt >= T(3, 3, 0.45)
-        dial(d, (780, 800), 135, t2, RED, "СНАРУЖИ")
-        if stop: tx(d, (780, 1030), "ПОЧТИ СТОП", 54, RED, a=0.5 + 0.5 * (int(lt * 4) % 2), w="Bold")
-        tx(d, (780, 1085), "со стороны наблюдателя", 28, DIM, a=P(3, lt, 2, 0.2, 0.6), w="Medium")
+        dial(d, (780, 770), 135, t2, RED, "СНАРУЖИ")
+        if stop: tx(d, (780, 1040), "ПОЧТИ СТОП", 50, RED, a=0.5 + 0.5 * (int(lt * 4) % 2), w="Bold")
+        tx(d, (780, 1095), "со стороны наблюдателя", 28, DIM, a=P(3, lt, 2, 0.2, 0.6), w="Medium")
     return done(im, lay, lt)
 # ---------- 5: приливные силы (частицы)
 def s5(lt, D):
@@ -161,14 +161,14 @@ def s7(lt, D):
     big = 30 + 175 * ease(a); c = (610, 720)
     im = B.bh_frame(c[0], c[1], big, t=lt + 3, incl=80, exposure=0.55, drift=lt, stars=0.8)
     sm = B.bh_frame(150, 930, 22, t=lt, incl=82, exposure=0.6, stars=0.0); im = ImageChops.add(im, sm).convert("RGBA"); lay, d = layer()
-    B.tracked(d, (150, 990), "СТРЕЛЕЦ A*", 22, ICE, u=seg(a, 0.3, 0.8)); B.tracked(d, (610, 290), "M87*", 40, GOLD, u=seg(a, 0.2, 0.7))
-    if a > 0.4: tx(d, (610, 345), f"{int(6_500_000_000 * ease(a)):,}".replace(",", " ") + " СОЛНЦ", 38, GOLD, a=seg(a, 0.4, 0.6))
+    B.tracked(d, (150, 990), "СТРЕЛЕЦ A*", 22, ICE, u=seg(a, 0.3, 0.8) * (1 - min(1, p * 4))); B.tracked(d, (610, 290), "M87*", 40, GOLD, u=seg(a, 0.2, 0.7) * (1 - min(1, p * 4)))
+    if a > 0.4: tx(d, (610, 345), f"{int(6_500_000_000 * ease(a)):,}".replace(",", " ") + " СОЛНЦ", 38, GOLD, a=seg(a, 0.4, 0.6) * (1 - min(1, p * 4)))
     if p > 0:
         im.alpha_composite(Image.new("RGBA", (W, H), (3, 4, 10, int(255 * min(1, p * 2.2)))))
-        ring = B.eht_ring(440, u=min(1, p * 1.5), cx=540, cy=600).convert("RGBA"); ring.putalpha(Image.new("L", (W, H), 255)); im = ImageChops.add(im.convert("RGB"), ring.convert("RGB")).convert("RGBA")
+        ring = B.eht_ring(370, u=min(1, p * 1.5), cx=540, cy=650).convert("RGBA"); ring.putalpha(Image.new("L", (W, H), 255)); im = ImageChops.add(im.convert("RGB"), ring.convert("RGB")).convert("RGBA")
         for (x0, y0, sx, sy) in ((130, 250, 1, 1), (950, 250, -1, 1), (130, 960, 1, -1), (950, 960, -1, -1)):
             d.line([(x0, y0), (x0 + sx * 50, y0)], fill=ICE + (230,), width=3); d.line([(x0, y0), (x0, y0 + sy * 50)], fill=ICE + (230,), width=3)
-        B.tracked(d, (540, 205), "2019 · ПЕРВЫЙ СНИМОК", 32, GOLD, u=p); tx(d, (540, 1010), "СХЕМА, НЕ ФОТО", 26, DIM, a=p, w="Medium")
+        B.tracked(d, (540, 262), "2019 · ПЕРВЫЙ СНИМОК", 30, GOLD, u=p); tx(d, (540, 1010), "СХЕМА, НЕ ФОТО", 26, DIM, a=p, w="Medium")
     return done(im, lay, lt, shake=1.5)
 # ---------- 8: формулы ломаются
 def s8(lt, D):
@@ -195,7 +195,7 @@ def s9(lt, D):
     if m > 0:
         col = lerp(WHT, (70, 80, 100), seg(lt, T(8, 0, 0.6), T(8, 0, 0.9))); tx(d, (540, 900), "МОНСТР", 78, col, w="Black"); d.line([(340, 900), (340 + 400 * P(8, lt, 0, 0.6, 0.9), 900)], fill=RED + (255,), width=8)
     o = P(8, lt, 1, 0.2, 0.7)
-    if o > 0: tx(d, (540, 790), "ОТВЕТ", int(40 + 56 * o), lerp((60, 70, 90), GOLD, o), w="Black")
+    if o > 0: tx(d, (540, 1010), "ОТВЕТ", int(40 + 56 * o), lerp((60, 70, 90), GOLD, o), w="Black")
     b = P(8, lt, 2, 0.2, 0.6)
     if b > 0:
         d.rectangle((0, 250, W, 1100), fill=(3, 4, 10, int(235 * b))); s_ = 1 + 0.04 * math.sin(lt * 6); w_, h_ = 470 * s_, 120 * s_
