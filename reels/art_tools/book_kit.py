@@ -106,3 +106,26 @@ def distance(name, left, right, mid, bottom=None):
     d.text((W // 2, 1030), mid, font=F("Black", 96), fill=(255, 214, 40), anchor="mm")
     if bottom: d.text((W // 2, 1560), bottom, font=F("Black", 110), fill=(230, 90, 90), anchor="mm")
     im.convert("RGB").save(f"{HERE}/art/{name}.jpg", quality=92)
+# ---------- сетка «старых фото» (ролик ego_betrayal_1): свои пейзажи без лиц ----------
+def photo_grid(name, states, note=None):
+    """states: 6 значений 'plain' | 'q' (затемнено, «?») | 'dim' | 'keep' (яркое, золотая рамка) | 'off' (почти погасло)."""
+    im = dark(); d = ImageDraw.Draw(im); fw, fh = 400, 400; gx, gy = 60, 70
+    x0 = (W - (3 * fw + 2 * gx)) // 2; y0 = 520
+    pal = [((250, 190, 120), (120, 160, 120)), ((240, 150, 110), (90, 120, 150)), ((255, 215, 140), (110, 140, 100)),
+           ((230, 170, 130), (80, 110, 140)), ((250, 200, 150), (130, 150, 110)), ((245, 170, 120), (100, 130, 160))]
+    for k, st in enumerate(states):
+        cx = x0 + (k % 3) * (fw + gx); cy = y0 + (k // 3) * (fh + gy); sky, hill = pal[k]
+        ph = Image.new("RGBA", (fw, fh), sky + (255,)); pd = ImageDraw.Draw(ph)
+        pd.ellipse((fw * 0.62, fh * 0.16, fw * 0.62 + 90, fh * 0.16 + 90), fill=(255, 245, 220, 255))
+        pd.polygon([(0, fh), (0, fh * 0.66), (fw * 0.38, fh * 0.5), (fw * 0.7, fh * 0.64), (fw, fh * 0.55), (fw, fh)], fill=hill + (255,))
+        pd.rectangle((fw * 0.18, fh * 0.6, fw * 0.3, fh * 0.74), fill=(70, 50, 40, 255)); pd.polygon([(fw * 0.16, fh * 0.6), (fw * 0.24, fh * 0.5), (fw * 0.32, fh * 0.6)], fill=(110, 60, 50, 255))
+        shade = {"plain": 0, "keep": 0, "q": 150, "dim": 170, "off": 225}[st]
+        if shade: ph.alpha_composite(Image.new("RGBA", (fw, fh), (10, 12, 20, shade)))
+        im.alpha_composite(ph, (cx, cy)); d = ImageDraw.Draw(im)
+        d.rectangle((cx - 14, cy - 14, cx + fw + 14, cy + fh + 14), outline=(255, 214, 40) if st == "keep" else (235, 232, 222), width=10 if st == "keep" else 8)
+        if st == "q": d.text((cx + fw // 2, cy + fh // 2), "?", font=F("Black", 220), fill=(235, 90, 90), anchor="mm")
+    if note: d.text((W // 2, 400), note, font=F("SemiBold", 56), fill=(255, 214, 40), anchor="mm")
+    im.convert("RGB").save(f"{HERE}/art/{name}.jpg", quality=92)
+def dim_image(src, dst, k=0.45):
+    from PIL import ImageEnhance
+    ImageEnhance.Brightness(Image.open(f"{HERE}/art/{src}.jpg")).enhance(k).save(f"{HERE}/art/{dst}.jpg", quality=92)
