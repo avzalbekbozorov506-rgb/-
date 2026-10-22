@@ -18,7 +18,7 @@ def sans(style, size): return ImageFont.truetype(f"/usr/share/fonts/opentype/int
 def ease(x): x = min(max(x, 0), 1); return x * x * (3 - 2 * x)
 SCENES = cfg.SCENES          # (озвучка, текст или None для титула, метка, картина|функция(lt, D), подпись, камера)
 LEAD, TAIL, XF = 0.6, 1.0, 0.7
-LEAD_N = LEAD
+LEAD_N = getattr(cfg, "LEAD_N", LEAD)
 XF = getattr(cfg, "XF", XF)                 # длина наплыва между сценами (0 — жёсткая склейка)
 TAIL = getattr(cfg, "TAIL", TAIL)
 
@@ -111,6 +111,8 @@ LEAD = LEAD_N
 DUR = t0
 track = np.zeros(int(DUR * SR) + SR)
 for st, a in voice: track[int(st * SR):int(st * SR) + len(a)] += a
+if hasattr(cfg, "SFX"):                                              # звуковые акценты кодом: cfg.SFX(STARTS, PHRASES, DURS, SR) -> [(секунда, массив)]
+    for st, a in cfg.SFX(STARTS, PHRASES, DURS, SR): track[int(st * SR):int(st * SR) + len(a)] += a[:max(0, len(track) - int(st * SR))]
 wavfile.write(f"{WORK}/voice.wav", SR, (track / np.abs(track).max() * 0.9 * 32767).astype(np.int16))
 
 # ---------- музыка ----------
