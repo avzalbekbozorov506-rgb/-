@@ -116,8 +116,7 @@ def frame(t):
     glitch = 0.0
     # плашка и значок аккаунта
     if t < T_END:
-        ig_icon(d, 930, 250, 44, (230, 235, 245)); tw(d, (1004, 312), "@mysli.vekov", font("m", "Bold", 28), (230, 235, 245), "ra")
-        tw(d, (70, 262), "вымышленный сценарий", font("m", "Regular", 26), GR)
+                tw(d, (70, 262), "вымышленный сценарий", font("m", "Regular", 26), GR)
     # --- A: терминал
     if t < T_UNDERSTOOD + 1.1:
         if t < T_BIG:
@@ -216,8 +215,8 @@ def frame(t):
     if t >= T_CARD:
         a = ease(seg(t, T_CARD, T_CARD + 0.6))
         for i, ln in enumerate(["Отправь тому,", "кто вечно", "опаздывает"]): tw(d, (W / 2, 640 + i * 130), ln, font("i", "Black", 108), tuple(int(c * a) for c in WH), "mm")
-        b = ease(seg(t, T_CARD + 1.2, T_CARD + 1.8)); ig_icon(d, W // 2 - 36, 1080, 72, tuple(int(c * b) for c in WH))
-        tw(d, (W / 2, 1200), "Подпишись", font("i", "Black", 64), tuple(int(c * b) for c in CY), "mm"); tw(d, (W / 2, 1270), "@mysli.vekov", font("m", "Bold", 40), tuple(int(c * b) for c in WH), "mm")
+        b = ease(seg(t, T_CARD + 1.2, T_CARD + 1.8))
+        tw(d, (W / 2, 1120), "Подпишись", font("i", "Black", 72), tuple(int(c * b) for c in CY), "mm")
     # композиция
     uf = np.asarray(ui, np.float32); gl = np.asarray(ui.filter(ImageFilter.GaussianBlur(14)), np.float32); pa = np.asarray(pan, np.float32)[:, :, None] / 255.0
     res = out * (1 - pa) + uf + gl * 0.75
