@@ -6,8 +6,12 @@ import bh_cine as B
 from bh_cine import W, H, ease, seg, lerp, fnt
 RX, RY, RZ = 1.7, 0.7, 0.72          # роутер в системе комнаты
 class Iso:
-    def __init__(s, S=78.0, cx=540.0, cy=700.0): s.S, s.cx, s.cy = S, cx, cy
-    def p(s, x, y, z=0.0): return (s.cx + (x - y) * 0.866 * s.S, s.cy + (x + y) * 0.5 * s.S - z * s.S)
+    """Изометрия с медленным поворотом камеры (yaw, рад) вокруг центра комнаты — даёт ощущение настоящей 3D-сцены."""
+    def __init__(s, S=78.0, cx=540.0, cy=700.0, yaw=0.0): s.S, s.cx, s.cy, s.yaw = S, cx, cy, yaw
+    def p(s, x, y, z=0.0):
+        if s.yaw:
+            c, sn = math.cos(s.yaw), math.sin(s.yaw); dx, dy = x - 3.0, y - 3.0; x, y = 3.0 + dx * c - dy * sn, 3.0 + dx * sn + dy * c
+        return (s.cx + (x - y) * 0.866 * s.S, s.cy + (x + y) * 0.5 * s.S - z * s.S)
 def poly(d, pts, fill, outline=None, w=2): d.polygon(pts, fill=fill, outline=outline)
 def box(d, I, x, y, z, w, dp, h, top, left, right, edge=None):
     P = I.p; x1, y1, z1 = x + w, y + dp, z + h
@@ -43,6 +47,23 @@ def room(lt, I, wall_a=150, dim=1.0, plug=1.0, leds=True, window=True):
     if plug < 1.0: pg = (0.0, 0.0)
     cord_end = P(0.9, 0.0 - 0.55 * (1 - plug) * 0 , 0.36 + 0.55 * (1 - plug)) if False else P(0.9, 0.02 + 0.9 * (1 - plug), 0.36 + 0.3 * (1 - plug))
     d.line([P(1.5, 0.45, 0.62), P(1.2, 0.5, 0.2), cord_end], fill=(20, 24, 30, 255), width=5)
+    # --- кино-свет: лунный свет из окна, тёплое свечение роутера, объёмный туман, пыль
+    lt_lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ld = ImageDraw.Draw(lt_lay)
+    shaft = [P(0, 2.2, 1.0), P(0, 4.2, 1.0), P(3.6, 5.6, 0.0), P(1.8, 3.4, 0.0)]
+    ld.polygon([P(0, 2.2, 2.3), P(0, 4.2, 2.3), P(3.2, 5.9, 0.0), P(1.2, 3.2, 0.0)], fill=(120, 170, 255, int(34 * dim)))
+    im.alpha_composite(lt_lay.filter(ImageFilter.GaussianBlur(26)))
+    glow = Image.new("RGBA", (W, H), (0, 0, 0, 0)); gd = ImageDraw.Draw(glow); rp = P(RX, RY, RZ)
+    for r_, a_ in ((320, 20), (210, 30), (110, 46)): gd.ellipse((rp[0] - r_, rp[1] - r_ * 0.55, rp[0] + r_, rp[1] + r_ * 0.55), fill=(60, 255, 200, int(a_ * dim)))
+    im.alpha_composite(glow.filter(ImageFilter.GaussianBlur(30)))
+    hz = Image.new("RGBA", (W, H), (0, 0, 0, 0)); hd = ImageDraw.Draw(hz)
+    for k in range(4):
+        cxh = 540 + 280 * math.sin(lt * 0.17 + k * 1.7); cyh = 760 + 140 * math.cos(lt * 0.13 + k * 2.3); hd.ellipse((cxh - 300, cyh - 150, cxh + 300, cyh + 150), fill=(70, 110, 190, 16))
+    im.alpha_composite(hz.filter(ImageFilter.GaussianBlur(60)))
+    dl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); dd = ImageDraw.Draw(dl); rng = np.random.default_rng(11)
+    for k in range(46):
+        px = (rng.uniform(0, W) + 12 * lt * rng.uniform(-1, 1)) % W; py = 330 + ((rng.uniform(0, 780) - 9 * lt * rng.uniform(0.3, 1)) % 780); r_ = rng.uniform(1.2, 3.2)
+        dd.ellipse((px - r_, py - r_, px + r_, py + r_), fill=(190, 225, 255, int(70 + 60 * math.sin(lt * 1.3 + k))))
+    im.alpha_composite(dl.filter(ImageFilter.GaussianBlur(1.1)))
     return im, sock, cord_end
 def rings(im, I, r0, n=5, spread=0.9, a=1.0, col=(80, 230, 200), z=RZ, cx=RX, cy=RY, fade=2.6, width=4):
     """Кольца волны в горизонтальной плоскости, яркость падает с радиусом."""
@@ -53,4 +74,8 @@ def rings(im, I, r0, n=5, spread=0.9, a=1.0, col=(80, 230, 200), z=RZ, cx=RX, cy
         if al < 0.03: continue
         pts = [I.p(cx + r * math.cos(t), cy + r * math.sin(t), z) for t in np.linspace(0, 2 * math.pi, 90)]
         d.line(pts + [pts[0]], fill=col + (int(255 * al),), width=width, joint="curve")
+    for k in range(n):
+        r = (r0 + k * spread) % (n * spread) + 0.15; al = a * max(0.0, 1 - r / (n * spread)) ** 1.6 * 0.10
+        if al < 0.01: continue
+        pts = [I.p(cx + r * math.cos(t), cy + r * math.sin(t), z) for t in np.linspace(0, 2 * math.pi, 90)]; d.polygon(pts, fill=col + (int(255 * al),))
     g = lay.filter(ImageFilter.GaussianBlur(7)); im.alpha_composite(g); im.alpha_composite(lay)

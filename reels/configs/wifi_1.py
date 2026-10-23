@@ -25,7 +25,13 @@ def layer(): lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); return lay, ImageDra
 def fin(base, lay=None, lt=0.0, shake=1.0, k=0.6, streak=0.06, ca=2):
     base = base.convert("RGBA")
     if lay is not None: base.alpha_composite(lay)
-    return B.finish_c(base, k=k, streak=streak, shake=shake, lt=lt, ca=ca)
+    z = 1.0 + 0.012 * min(lt, 9.0)                                    # медленный наезд камеры
+    if z > 1.0005:
+        w_, h_ = W / z, H / z; base = base.transform((W, H), Image.AFFINE, (1 / z, 0, (W - w_) / 2, 0, 1 / z, (H - h_) / 2 - 20 * (z - 1) * 10), Image.BICUBIC)
+    sm = base.resize((W // 2, H // 2), Image.BILINEAR).filter(ImageFilter.GaussianBlur(5)).resize((W, H), Image.BILINEAR)   # глубина резкости: края мягче
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32); m = np.clip(((xx - W / 2) / (W * 0.62)) ** 2 + ((yy - 720) / (H * 0.36)) ** 2 - 0.55, 0, 1)
+    ma = Image.fromarray((np.clip(m * 1.4, 0, 1) * 255).astype(np.uint8), "L"); base = Image.composite(sm, base, ma)
+    return B.finish_c(base, k=k + 0.15, streak=streak, shake=shake, lt=lt, ca=ca)
 def tx(d, xy, s, size, col=WHT, a=1.0, w="Bold", anchor="mm"):
     if a < 0.03: return
     d.text(xy, s, font=fnt(size, w), fill=col + (int(255 * min(a, 1)),), anchor=anchor, stroke_width=2, stroke_fill=(0, 0, 0, int(140 * min(a, 1))))
@@ -47,7 +53,7 @@ def chap(d, n, title, u=1.0):
 def corners(d, a=0.5):
     for (x, y, sx, sy) in ((60, 380, 1, 1), (1020, 380, -1, 1), (60, 1120, 1, -1), (1020, 1120, -1, -1)):
         d.line([(x, y), (x + 44 * sx, y)], fill=NEON + (int(200 * a),), width=3); d.line([(x, y), (x, y + 44 * sy)], fill=NEON + (int(200 * a),), width=3)
-def iso(S=78, cy=700): return I_.Iso(S=S, cx=540, cy=cy)
+def iso(S=78, cy=700, lt=0.0): return I_.Iso(S=S, cx=540 + 26 * math.sin(lt * 0.22), cy=cy + 14 * math.cos(lt * 0.19), yaw=0.16 * math.sin(lt * 0.21 + 0.6))
 def photons(im, I, lt, n=14, a=1.0, speed=1.6, col=(255, 255, 255), size=9, z=I_.RZ):
     lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay); rng = np.random.default_rng(5)
     for k in range(n):
@@ -57,7 +63,7 @@ def photons(im, I, lt, n=14, a=1.0, speed=1.6, col=(255, 255, 255), size=9, z=I_
     g = lay.filter(ImageFilter.GaussianBlur(8)); im.alpha_composite(g); im.alpha_composite(lay)
 # ---------- 0. хук: роутер и вилка
 def s0(lt, D):
-    I = iso(82, 690); u = P(0, lt, 0, 0.55, 1.0); im, sock, ce = I_.room(lt, I, plug=1 - 0.85 * u); lay, d = layer()
+    I = iso(82, 690, lt); u = P(0, lt, 0, 0.55, 1.0); im, sock, ce = I_.room(lt, I, plug=1 - 0.85 * u); lay, d = layer()
     a = P(0, lt, 0, 0.15, 0.6)
     if a > 0:
         rp = I.p(I_.RX + 0.2, I_.RY + 0.2, I_.RZ); B.reticle(d, rp, 120, RED + (int(230 * a),), u=a, ticks=36, w=3)
@@ -69,14 +75,14 @@ def s0(lt, D):
     return fin(im, lay, lt, shake=1.0, k=0.55)
 # ---------- 1. «Давай проверим расчётом»
 def s1(lt, D):
-    zoom = 82 + 14 * seg(lt, 0, D); I = iso(zoom, 700); im, sock, ce = I_.room(lt, I); lay, d = layer(); a = P(1, lt, 0, 0.0, 0.7)
+    zoom = 82 + 14 * seg(lt, 0, D); I = iso(zoom, 700, lt); im, sock, ce = I_.room(lt, I); lay, d = layer(); a = P(1, lt, 0, 0.0, 0.7)
     chap(d, "01", "ВОПРОС", a)
     y = 380 + 700 * ((lt * 0.9) % 1); d.line([(60, y), (1020, y)], fill=NEON + (140,), width=3)
     B.tracked(d, (540, 1080), "ПРОВЕРИМ РАСЧЁТОМ", 40, NEON, u=P(1, lt, 0, 0.2, 0.9)); corners(d, 0.5)
     return fin(im, lay, lt, k=0.55)
 # ---------- 2. радиостанция, волны, частота
 def s2(lt, D):
-    I = iso(96, 700); im, sock, ce = I_.room(lt, I, wall_a=110); lay, d = layer()
+    I = iso(96, 700, lt); im, sock, ce = I_.room(lt, I, wall_a=110); lay, d = layer()
     gr = P(2, lt, 0, 0.0, 0.9); I_.rings(im, I, lt * 0.9, a=min(1.0, gr * 1.3) )
     chap(d, "02", "ЧТО ЭТО ЗА ВОЛНА", P(2, lt, 0, 0.0, 0.3))
     c = P(2, lt, 2, 0.2, 0.9)
@@ -87,7 +93,7 @@ def s2(lt, D):
     return fin(im, lay, lt, k=0.6)
 # ---------- 3. поток частиц света
 def s3(lt, D):
-    I = iso(96, 700); im, sock, ce = I_.room(lt, I, wall_a=100, dim=0.8); lay, d = layer()
+    I = iso(96, 700, lt); im, sock, ce = I_.room(lt, I, wall_a=100, dim=0.8); lay, d = layer()
     I_.rings(im, I, lt * 0.9, a=max(0.0, 1 - P(3, lt, 0, 0.1, 0.5)) * 0.9)
     photons(im, I, lt, n=18, a=P(3, lt, 0, 0.15, 0.6))
     chap(d, "02", "ЧТО ЭТО ЗА ВОЛНА", 1.0)
@@ -129,7 +135,7 @@ def s5(lt, D):
     return fin(im, lay, lt, k=0.7)
 # ---------- 6. рехук: «Но их же много?»
 def s6(lt, D):
-    I = iso(78 - 8 * seg(lt, 0, D), 700); im, sock, ce = I_.room(lt, I, wall_a=90, dim=0.7); lay, d = layer(); u = P(6, lt, 0, 0.1, 0.9)
+    I = iso(78 - 8 * seg(lt, 0, D), 700, lt); im, sock, ce = I_.room(lt, I, wall_a=90, dim=0.7); lay, d = layer(); u = P(6, lt, 0, 0.1, 0.9)
     photons(im, I, lt, n=70, a=u, size=7); chap(d, "04", "МОЩНОСТЬ", P(6, lt, 1, 0.0, 0.5))
     q = P(6, lt, 1, 0.3, 0.9)
     if q > 0: tx(d, (540, 560), "?", int(260 * (0.8 + 0.2 * q)), RED, a=q, w="Black")
@@ -146,7 +152,7 @@ def s7(lt, D):
     return fin(im, lay, lt, k=0.7)
 # ---------- 8. расстояние: круг растёт
 def s8(lt, D):
-    I = iso(96, 700); im, sock, ce = I_.room(lt, I, wall_a=80, dim=0.75); lay, d = layer(); u = seg(lt, 0.0, D); chap(d, "05", "РАССТОЯНИЕ", P(8, lt, 0, 0.0, 0.4))
+    I = iso(96, 700, lt); im, sock, ce = I_.room(lt, I, wall_a=80, dim=0.75); lay, d = layer(); u = seg(lt, 0.0, D); chap(d, "05", "РАССТОЯНИЕ", P(8, lt, 0, 0.0, 0.4))
     r = 0.4 + 4.6 * u; disk = Image.new("RGBA", (W, H), (0, 0, 0, 0)); dd = ImageDraw.Draw(disk)
     pts = [I.p(I_.RX + r * math.cos(t), I_.RY + r * math.sin(t), 0.01) for t in np.linspace(0, 2 * math.pi, 90)]; dd.polygon(pts, fill=NEON + (int(110 * (1 - 0.8 * u)),), outline=NEON + (230,))
     im.alpha_composite(disk); I_.rings(im, I, lt * 1.0, a=0.6)
@@ -200,13 +206,13 @@ def s12(lt, D):
     return fin(im, lay, lt, k=0.7)
 # ---------- 13. доза, вилка в розетке
 def s13(lt, D):
-    I = iso(88, 700); im, sock, ce = I_.room(lt, I, wall_a=130, plug=1.0); lay, d = layer(); a = P(13, lt, 0, 0.1, 0.7)
+    I = iso(88, 700, lt); im, sock, ce = I_.room(lt, I, wall_a=130, plug=1.0); lay, d = layer(); a = P(13, lt, 0, 0.1, 0.7)
     rp = I.p(I_.RX + 0.2, I_.RY + 0.2, I_.RZ); B.reticle(d, rp, 120, GRN + (int(230 * a),), u=a, ticks=36, w=3); I_.rings(im, I, lt * 0.6, a=0.35 * a, col=GRN)
     d.rounded_rectangle((250, 960, 830, 1070), 20, fill=(8, 14, 28, int(235 * a)), outline=GRN + (int(240 * a),), width=3); tx(d, (540, 1015), "ОПАСНА ДОЗА", 64, GRN, a=a, w="Black"); corners(d, 0.5)
     return fin(im, lay, lt, k=0.6)
 # ---------- 14. концовка
 def s14(lt, D):
-    I = iso(88, 700); im, sock, ce = I_.room(lt, I, wall_a=130, dim=0.6); im.alpha_composite(Image.new("RGBA", (W, H), (0, 0, 0, int(140 * P(14, lt, 0, 0.0, 0.4)))))
+    I = iso(88, 700, lt); im, sock, ce = I_.room(lt, I, wall_a=130, dim=0.6); im.alpha_composite(Image.new("RGBA", (W, H), (0, 0, 0, int(140 * P(14, lt, 0, 0.0, 0.4)))))
     lay, d = layer(); b = P(14, lt, 0, 0.1, 0.5); s_ = 1 + 0.04 * math.sin(lt * 6); w_, h_ = 480 * s_, 120 * s_
     if b > 0: d.rounded_rectangle((540 - w_ / 2, 760 - h_ / 2, 540 + w_ / 2, 760 + h_ / 2), 60, fill=(255, 200, 60, int(255 * b))); tx(d, (540, 760), "ОТПРАВЬ", 58, (20, 14, 6), a=b)
     return fin(im, lay, lt, k=0.5)
