@@ -237,7 +237,7 @@ def s6(lt, D):
     if c > 0 or e > 0:
         n = int(100 * ease(e)); rng = np.random.default_rng(4)
         for k in range(n): px = 120 + (k % 20) * 42; py = 810 + (k // 20) * 42; d.ellipse((px - 12, py - 12, px + 12, py + 12), fill=LIL + (230,))
-        if n > 0: tx(d, (540, 1050), (f"{n}" if n < 100 else "100+") + " ВЕЩЕСТВ ВЫДЕЛЯЮТ ОСВЕЖИТЕЛИ", 38, LIL, a=max(c, e)); tx(d, (540, 1110), "ОБЗОР 2017 ГОДА", 26, DIM, a=max(c, e), w="Medium")
+        if n > 0: tx(d, (540, 1010), "ОСВЕЖИТЕЛИ ВЫДЕЛЯЮТ ВЕЩЕСТВА:", 32, LIL, a=max(c, e)); tx(d, (540, 1075), (f"{n}" if n < 100 else "100+"), 72, LIL, a=max(c, e), w="Black"); tx(d, (540, 1140), "ОБЗОР 2017 ГОДА", 26, DIM, a=max(c, e), w="Medium")
     corners(d, 0.5)
     return fin(im, lay, lt, k=0.7)
 # ---------- 7. окно и вытяжка
