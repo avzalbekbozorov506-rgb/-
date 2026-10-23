@@ -134,13 +134,48 @@ def spray(im, I, lt, t0, u=1.0, col=PINK):
 def can_icon(d, c, s, col=PINK, a=1.0):
     d.rounded_rectangle((c[0] - s * 0.5, c[1] - s * 1.2, c[0] + s * 0.5, c[1] + s * 1.0), int(s * 0.15), fill=col + (int(255 * a),), outline=(255, 235, 245, int(255 * a)), width=3)
     d.rectangle((c[0] - s * 0.22, c[1] - s * 1.55, c[0] + s * 0.22, c[1] - s * 1.2), fill=(240, 240, 250, int(255 * a)))
+
+GRNS = (120, 235, 80)
+def stink(im, I, lt, a=1.0, n=6, src=SRC, h=220):
+    """Зелёные волнистые «линии вони» над унитазом — как в мультиках."""
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay); p0 = I.p(*src)
+    for k in range(n):
+        x0 = p0[0] - 60 + k * 26; pts = []
+        for j in range(26):
+            u = j / 25; y = p0[1] - 20 - u * h * (1 + 0.15 * k % 3); x = x0 + 20 * math.sin(u * 7 + lt * 3 + k * 1.3) * (0.4 + u)
+            pts.append((x, y))
+        d.line(pts, fill=GRNS + (int(235 * a),), width=9, joint="curve")
+    g = lay.filter(ImageFilter.GaussianBlur(9)); im.alpha_composite(g); im.alpha_composite(lay)
+def face_nose(d, c, s, mood="gross", a=1.0, lt=0.0):
+    """Мультяшное лицо: «зажатый нос» (мерзко) или «довольный»."""
+    A = int(255 * a); d.ellipse((c[0] - s, c[1] - s, c[0] + s, c[1] + s), fill=(255, 214, 60, A), outline=(40, 30, 10, A), width=6)
+    ex = s * 0.38; ey = c[1] - s * 0.25
+    if mood == "gross":
+        for sx in (-1, 1):
+            xx = c[0] + sx * ex; d.line([(xx - sx * s * 0.18, ey - s * 0.12), (xx + sx * s * 0.12, ey), (xx - sx * s * 0.18, ey + s * 0.12)], fill=(40, 30, 10, A), width=7)
+        d.arc((c[0] - s * 0.4, c[1] + s * 0.35, c[0] + s * 0.4, c[1] + s * 0.75), 200, 340, fill=(40, 30, 10, A), width=7)
+    else:
+        for sx in (-1, 1): xx = c[0] + sx * ex; d.ellipse((xx - s * 0.1, ey - s * 0.1, xx + s * 0.1, ey + s * 0.1), fill=(40, 30, 10, A))
+        d.arc((c[0] - s * 0.45, c[1] + s * 0.05, c[0] + s * 0.45, c[1] + s * 0.65), 20, 160, fill=(40, 30, 10, A), width=7)
+    d.polygon([(c[0] - s * 0.14, c[1] - s * 0.1), (c[0] + s * 0.14, c[1] - s * 0.1), (c[0] + s * 0.24, c[1] + s * 0.28), (c[0] - s * 0.24, c[1] + s * 0.28)], fill=(255, 150, 140, A), outline=(40, 30, 10, A), width=5)
+    if mood == "gross": d.rounded_rectangle((c[0] - s * 0.3, c[1] + s * 0.2, c[0] + s * 0.3, c[1] + s * 0.38), 10, fill=(255, 190, 140, A), outline=(40, 30, 10, A), width=4)   # пальцы-прищепка
+def stamp(im, c, text, size, col, ang=-8, a=1.0):
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay); f = fnt(size, "Black"); tw = d.textlength(text, font=f)
+    d.rounded_rectangle((c[0] - tw / 2 - 28, c[1] - size * 0.8, c[0] + tw / 2 + 28, c[1] + size * 0.8), 18, fill=(10, 8, 12, int(200 * a)), outline=col + (int(255 * a),), width=8)
+    d.text(c, text, font=f, fill=col + (int(255 * a),), anchor="mm"); lay = lay.rotate(ang, center=c, resample=Image.BICUBIC); im.alpha_composite(lay)
+def sparkles(d, lt, cx, cy, n=8, r=260, a=1.0, col=(255, 255, 255)):
+    rng = np.random.default_rng(9)
+    for k in range(n):
+        ang = rng.uniform(0, 6.28); rr = rng.uniform(0.4, 1.0) * r; x = cx + rr * math.cos(ang); y = cy + rr * math.sin(ang) * 0.6; sz = 14 + 12 * abs(math.sin(lt * 3 + k))
+        d.polygon([(x, y - sz), (x + sz * 0.3, y - sz * 0.3), (x + sz, y), (x + sz * 0.3, y + sz * 0.3), (x, y + sz), (x - sz * 0.3, y + sz * 0.3), (x - sz, y), (x - sz * 0.3, y - sz * 0.3)], fill=col + (int(240 * a),))
 # ---------- 0. хук
 def s0(lt, D):
-    I = iso(90, 700, lt); im = bath(lt, I, wall_a=100); lay, d = layer()
-    mol(im, I, lt + 4.0, n=70, a=0.9, spread=1.0); spray(im, I, lt, 0.5)
+    I = iso(102, 690, lt); im = bath(lt, I, wall_a=100); lay, d = layer()
+    mol(im, I, lt + 4.0, n=70, a=0.9, spread=1.0); stink(im, I, lt, a=0.9); spray(im, I, lt, 0.5, u=1.8)
     q = P(0, lt, 1, 0.1, 0.8); pc = I.p(*CAN); can_icon(d, (900, 560), 90, a=min(1, lt * 2))
     B.reticle(d, (pc[0], pc[1] + 40), 120, PINK + (int(230 * min(1, lt)),), u=min(1, lt * 1.5), ticks=36, w=3)
-    if q > 0: pill(d, (540, 330), "НОС ОБМАНУТ. ВОЗДУХ — НЕТ", 36, YEL, a=q)
+    face_nose(d, (170, 560), 105, 'gross', a=min(1, lt * 2.5), lt=lt)
+    if q > 0: stamp(im, (540, 400), 'НОС ОБМАНУТ!', 64, (255, 70, 60), ang=-6, a=q)
     corners(d, 0.5)
     return fin(im, lay, lt, k=0.6)
 # ---------- 1. «Простым языком»
@@ -150,8 +185,8 @@ def s1(lt, D):
     return fin(im, lay, lt, shake=0, k=0.7)
 # ---------- 2. запах: молекулы-туристы
 def s2(lt, D):
-    I = iso(96, 700, lt); im = bath(lt, I, wall_a=110); lay, d = layer(); chap(d, "01", "ОТКУДА ЗАПАХ", P(2, lt, 0, 0.0, 0.3))
-    mol(im, I, lt * 0.7, n=60, a=1.0, spread=1.8, size=10, tour=True); a = P(2, lt, 1, 0.2, 0.9)
+    I = iso(104, 690, lt); im = bath(lt, I, wall_a=110); lay, d = layer(); chap(d, "01", "ОТКУДА ЗАПАХ", P(2, lt, 0, 0.0, 0.3))
+    stink(im, I, lt, a=0.8); mol(im, I, lt * 0.7, n=60, a=1.0, spread=1.8, size=10, tour=True); a = P(2, lt, 1, 0.2, 0.9)
     pc = I.p(*SRC)
     if a > 0: B.leader(d, (pc[0] + 20, pc[1] - 30), (pc[0] + 120, pc[1] - 220), (900, pc[1] - 220), YEL + (230,), u=a); tx(d, (770, pc[1] - 260), "МОЛЕКУЛА ЗАПАХА", 32, YEL, a=a)
     t = P(2, lt, 2, 0.2, 0.9)
@@ -171,10 +206,10 @@ def s3(lt, D):
 # ---------- 4. нос-детектор
 def s4(lt, D):
     im = grid_bg(lt); lay, d = layer(); chap(d, "02", "НОС", P(4, lt, 0, 0.0, 0.3)); a = P(4, lt, 0, 0.1, 0.8); b = P(4, lt, 1, 0.2, 0.8); c = P(4, lt, 2, 0.2, 0.9)
-    cx_, cy_ = 330, 700; d.ellipse((cx_ - 130, cy_ - 150, cx_ + 130, cy_ + 150), outline=ICE + (int(230 * a),), width=5); d.polygon([(cx_ + 110, cy_ - 30), (cx_ + 190, cy_ + 60), (cx_ + 110, cy_ + 70)], outline=ICE + (int(230 * a),), width=5)
+    cx_, cy_ = 300, 700; face_nose(d, (cx_, cy_), 150, 'gross', a=a, lt=lt)
     rng = np.random.default_rng(2)
     for k in range(int(40 * b)):
-        px = cx_ + 70 + rng.uniform(-30, 30); py = cy_ + 20 + rng.uniform(-40, 40); d.ellipse((px - 5, py - 5, px + 5, py + 5), fill=GRN + (230,))
+        px = cx_ + rng.uniform(-30, 30); py = cy_ - 5 + rng.uniform(-30, 20); d.ellipse((px - 5, py - 5, px + 5, py + 5), fill=GRN + (230,))
     if b > 0: tx(d, (700, 560), "СОТНИ ВИДОВ", 44, GRN, a=b); tx(d, (700, 615), "РЕЦЕПТОРОВ", 36, GRN, a=b)
     if c > 0:
         d.rounded_rectangle((120, 900, 960, 1070), 20, fill=(8, 14, 28, int(235 * c)), outline=YEL + (int(240 * c),), width=3)
@@ -183,12 +218,13 @@ def s4(lt, D):
     return fin(im, lay, lt, k=0.7)
 # ---------- 5. РЕХУК: освежитель — парфюмер
 def s5(lt, D):
-    I = iso(96, 700, lt); im = bath(lt, I, wall_a=110); lay, d = layer(); chap(d, "03", "ОСВЕЖИТЕЛЬ", P(5, lt, 0, 0.0, 0.3))
+    I = iso(104, 690, lt); im = bath(lt, I, wall_a=110); lay, d = layer(); chap(d, "03", "ОСВЕЖИТЕЛЬ", P(5, lt, 0, 0.0, 0.3))
     mol(im, I, lt * 0.7 + 3, n=60, a=1.0, spread=1.6, size=10); spray(im, I, lt, T(5, 1, 0.3), u=2.2); spray(im, I, lt, T(5, 1, 0.5), u=2.0, col=LIL)
     b = P(5, lt, 1, 0.3, 0.9); c = P(5, lt, 2, 0.2, 0.9)
     if b > 0: tx(d, (300, 1010), "ПАРФЮМЕР", 56, PINK, a=b)
     if c > 0: pill(d, (700, 1010), "ЗАПАХ НА МЕСТЕ", 34, YEL, a=c); pill(d, (700, 1080), "ПОВЕРХ — БУКЕТ", 34, PINK, a=c)
-    can_icon(d, (880, 520), 100, a=b)
+    can_icon(d, (880, 520), 100, a=b); sparkles(d, lt, 560, 700, 10, 300, a=b, col=(255, 200, 240))
+    if b > 0: face_nose(d, (180, 560), 95, 'happy', a=b, lt=lt); stamp(im, (540, 430), 'МАСКИРОВКА!', 60, (255, 130, 200), ang=-5, a=b)
     if b > 0: d.ellipse((835, 380, 925, 420), fill=(60, 60, 110, int(255 * b)))
     if c > 0: tx(d, (540, 1150), "ЗАПАХ: БЕЗ ИЗМЕНЕНИЙ", 30, YEL, a=c, w="Medium")
     corners(d, 0.5)
@@ -206,7 +242,7 @@ def s6(lt, D):
     return fin(im, lay, lt, k=0.7)
 # ---------- 7. окно и вытяжка
 def s7(lt, D):
-    I = iso(96, 700, lt); im = bath(lt, I, wall_a=100, fan=1.0); lay, d = layer(); chap(d, "04", "ЧТО РАБОТАЕТ", P(7, lt, 0, 0.0, 0.3))
+    I = iso(104, 690, lt); im = bath(lt, I, wall_a=100, fan=1.0); lay, d = layer(); chap(d, "04", "ЧТО РАБОТАЕТ", P(7, lt, 0, 0.0, 0.3))
     w = P(7, lt, 1, 0.1, 0.6); v = P(7, lt, 3, 0.1, 0.6)
     mol(im, I, lt * 0.7 + 3, n=80, a=1.0, spread=1.2, keep=max(0.12, 1 - 0.8 * max(w, v)))
     if w > 0:
@@ -235,16 +271,16 @@ def s8(lt, D):
     return fin(im, lay, lt, k=0.7)
 # ---------- 9. вывод
 def s9(lt, D):
-    I = iso(88, 700, lt); im = bath(lt, I, wall_a=110, dim=0.7); lay, d = layer(); chap(d, "05", "ВЫВОД", P(9, lt, 0, 0.0, 0.3))
+    I = iso(100, 690, lt); im = bath(lt, I, wall_a=110, dim=0.7); lay, d = layer(); chap(d, "05", "ВЫВОД", P(9, lt, 0, 0.0, 0.3))
     a = P(9, lt, 0, 0.2, 0.8); b = P(9, lt, 1, 0.2, 0.8); c = P(9, lt, 2, 0.1, 0.9)
     if a > 0: tx(d, (540, 520), "ЧИСТИТ?", 80, WHT, a=a, w="Black")
-    if b > 0: tx(d, (540, 650), "НЕТ", 150, RED, a=b, w="Black")
+    if b > 0: stamp(im, (540, 700), "НЕТ!", 190, (255, 70, 60), ang=-7, a=b)
     if c > 0: pill(d, (300, 1010), "ОСВЕЖИТЕЛЬ — ПЕРЕБИВАЕТ", 32, PINK, a=c); pill(d, (780, 1090), "ОКНО — РАЗБАВЛЯЕТ", 32, (120, 230, 255), a=c)
     corners(d, 0.5)
     return fin(im, lay, lt, k=0.6)
 # ---------- 10. концовка
 def s10(lt, D):
-    I = iso(88, 700, lt); im = bath(lt, I, wall_a=130, dim=0.6); im.alpha_composite(Image.new("RGBA", (W, H), (0, 0, 0, int(140 * P(10, lt, 0, 0.0, 0.4)))))
+    I = iso(100, 690, lt); im = bath(lt, I, wall_a=130, dim=0.6); im.alpha_composite(Image.new("RGBA", (W, H), (0, 0, 0, int(140 * P(10, lt, 0, 0.0, 0.4)))))
     lay, d = layer(); b = P(10, lt, 0, 0.1, 0.5); s_ = 1 + 0.04 * math.sin(lt * 6); w_, h_ = 480 * s_, 120 * s_
     if b > 0: d.rounded_rectangle((540 - w_ / 2, 760 - h_ / 2, 540 + w_ / 2, 760 + h_ / 2), 60, fill=(255, 200, 60, int(255 * b))); tx(d, (540, 760), "ОТПРАВЬ", 58, (20, 14, 6), a=b)
     return fin(im, lay, lt, k=0.5)
