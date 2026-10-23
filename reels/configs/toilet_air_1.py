@@ -16,6 +16,23 @@ AA = 0.35; GRAIN = 4.5
 TAIL = 0.3; XF = 0.3; LEAD_N = 0.2; GAP = 0.28
 RED = (255, 80, 60); GOLD = (255, 214, 60); ICE = (170, 215, 255); WHT = (240, 244, 255); DIM = (130, 150, 190); BLUE = (60, 150, 255); ORNG = (255, 140, 50); NEON = (80, 235, 205); GRN = (110, 235, 140)
 BG = (6, 9, 18)
+
+# эмоции голоса: вопрос — вверх и быстрее, шутка — медленнее и ниже, вердикт — твёрдо и громче
+STYLE = {
+    "нажимаешь освежитель": dict(rate=0.98, pitch=1.07, gain=1.1, after_ms=420),
+    "обманул только свой нос": dict(rate=0.8, pitch=0.95, gain=1.05),
+    "как туристы на экскурсии": dict(rate=0.92, pitch=1.05),
+    "вещества с серой": dict(rate=0.86, pitch=0.96),
+    "А нос — детектор": dict(rate=0.92, pitch=1.04),
+    "Что же делает освежитель": dict(rate=0.95, pitch=1.08, gain=1.1, after_ms=700),
+    "Он — парфюмер": dict(rate=0.78, pitch=0.94, gain=1.05, after_ms=520),
+    "цветочный букет": dict(rate=0.9, pitch=1.04),
+    "Так чистит ли освежитель": dict(rate=0.96, pitch=1.06, gain=1.08, after_ms=700),
+    "Нет.": dict(rate=0.72, pitch=0.9, gain=1.2, after_ms=520),
+    "Он перебивает": dict(rate=0.82, pitch=0.93, gain=1.1, after_ms=420),
+    "окно разбавляет": dict(rate=0.88, pitch=0.97, gain=1.1),
+    "лечит комнату": dict(rate=0.95, pitch=1.04),
+}
 def ph(i, k):
     import __main__ as E
     return E.PHRASES[i][k]
