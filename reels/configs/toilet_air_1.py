@@ -8,8 +8,8 @@ import bh_cine as B, iso_kit as I_
 from bh_cine import W, H, ease, seg, lerp, fnt
 HEAD = ("ПРОСТЫМ ЯЗЫКОМ", "ЧИСТИТ ЛИ ОСВЕЖИТЕЛЬ ВОЗДУХ")
 TITLE = ("", "", "")
-HOOK = ("ПОСЛЕ ТУАЛЕТА\nНАЖИМАЕШЬ ОСВЕЖИТЕЛЬ?", 2.4)
-HOOK_Y = 1010
+HOOK = ("ПОСЛЕ ТУАЛЕТА\nНАЖИМАЕШЬ\nОСВЕЖИТЕЛЬ?", 2.4)
+HOOK_Y = 930
 MUSIC = ("music/ogv_aria.mp3", 0)
 SUB_STYLE = "words"; WORDS_TAG = False; WORDS_Y = 1300; WORDS_SIZE = 92
 AA = 0.35; GRAIN = 4.5
@@ -55,7 +55,7 @@ def tx(d, xy, s, size, col=WHT, a=1.0, w="Bold", anchor="mm"):
 def pill(d, xy, s, size, col, a=1.0, w="Bold"):
     size = max(size, 34)
     if a < 0.03: return
-    f = fnt(size, w); tw = d.textlength(s, font=f); x, y = xy
+    f = fnt(size, w); tw = d.textlength(s, font=f); x, y = xy; x = min(max(x, tw / 2 + 50), W - tw / 2 - 50)
     d.rounded_rectangle((x - tw / 2 - 18, y - size * 0.75, x + tw / 2 + 18, y + size * 0.75), int(size * 0.75), fill=(6, 9, 18, int(200 * a)), outline=col + (int(200 * a),), width=2)
     d.text((x, y), s, font=f, fill=col + (int(255 * a),), anchor="mm")
 def dark(): return Image.new("RGBA", (W, H), BG + (255,))
@@ -65,8 +65,8 @@ def grid_bg(lt, a=1.0):
     for y in range(0, H, 60): d.line([(0, y), (W, y)], fill=(20, 30, 52, int(255 * a)), width=1)
     return im
 def chap(d, n, title, u=1.0):
-    tx(d, (170, 300), f"{n} / 05", 34, GOLD, a=u, w="Bold"); tx(d, (540, 300), title, 38, WHT, a=u, w="Bold")
-    d.line([(90, 335), (990, 335)], fill=NEON + (int(120 * u),), width=2)
+    tx(d, (170, 360), f"{n} / 05", 34, GOLD, a=u, w="Bold"); tx(d, (560, 360), title, 38, WHT, a=u, w="Bold")
+    d.line([(90, 395), (990, 395)], fill=NEON + (int(120 * u),), width=2)
 def corners(d, a=0.5):
     for (x, y, sx, sy) in ((60, 380, 1, 1), (1020, 380, -1, 1), (60, 1120, 1, -1), (1020, 1120, -1, -1)):
         d.line([(x, y), (x + 44 * sx, y)], fill=NEON + (int(200 * a),), width=3); d.line([(x, y), (x, y + 44 * sy)], fill=NEON + (int(200 * a),), width=3)
@@ -92,7 +92,9 @@ def bath(lt, I, wall_a=140, dim=1.0, fan=0.0):
     g = 0.6 + 0.1 * math.sin(lt * 0.7)
     I_.poly(d, [P_(0, 2.0, 1.2), P_(0, 4.0, 1.2), P_(0, 4.0, 2.4), P_(0, 2.0, 2.4)], (int(40 * g), int(70 * g), int(120 * g), 235), (120, 180, 230, 255))
     if fan > 0:
-        pass
+        c_ = P_(5.0, 0.0, 2.3); I_.poly(d, [P_(4.6, 0, 1.9), P_(5.4, 0, 1.9), P_(5.4, 0, 2.7), P_(4.6, 0, 2.7)], (30, 38, 56, 255), (140, 180, 220, 255))
+        for k in range(4):
+            a_ = lt * 6 + k * math.pi / 2; d.line([c_, (c_[0] + 38 * math.cos(a_), c_[1] + 38 * math.sin(a_))], fill=(190, 230, 255, 255), width=8)
     I_.box(d, I, 1.2, 0.1, 0, 1.0, 0.35, 0.95, (225, 232, 245, 255), (170, 180, 200, 255), (140, 150, 175, 255), (220, 230, 250, 255))          # бачок
     I_.box(d, I, 1.2, 0.45, 0, 1.0, 0.8, 0.5, (235, 240, 250, 255), (180, 190, 210, 255), (150, 160, 185, 255), (225, 232, 250, 255))           # унитаз
     I_.box(d, I, 4.2, 0.1, 0, 1.3, 0.6, 0.85, (200, 210, 230, 255), (150, 160, 185, 255), (120, 130, 160, 255), (200, 215, 240, 255))           # тумба
@@ -105,7 +107,7 @@ def bath(lt, I, wall_a=140, dim=1.0, fan=0.0):
     return im
 SRC = (1.7, 0.85, 0.55)           # источник запаха (унитаз)
 CAN = (3.4, 0.2, 1.95)            # флакон
-def mol(im, I, lt, n=60, a=1.0, spread=1.0, col=YEL, size=8, t0=0.0, src=SRC, drift=(0.55, 0.7), seed=3, keep=1.0):
+def mol(im, I, lt, n=60, a=1.0, spread=1.0, col=YEL, size=8, t0=0.0, src=SRC, drift=(0.55, 0.7), seed=3, keep=1.0, tour=False):
     """Молекулы запаха: стартуют у унитаза и расползаются по комнате (дрейф + дрожание)."""
     lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay); rng = np.random.default_rng(seed)
     for k in range(n):
@@ -115,7 +117,10 @@ def mol(im, I, lt, n=60, a=1.0, spread=1.0, col=YEL, size=8, t0=0.0, src=SRC, dr
         x = src[0] + r * (drift[0] + 0.7 * math.cos(ang)) + 0.06 * math.sin(lt * 3 + k); y = src[1] + r * (drift[1] + 0.6 * math.sin(ang)) + 0.06 * math.cos(lt * 2.7 + k)
         z = src[2] + ph_ * rng.uniform(0.0, 1.6) + 0.05 * math.sin(lt * 2 + k)
         x = min(max(x, 0.25), 5.8); y = min(max(y, 0.25), 5.8); p = I.p(x, y, z)
-        if ph_ > 0.01: d.ellipse((p[0] - size, p[1] - size, p[0] + size, p[1] + size), fill=col + (int(235 * a),))
+        if ph_ > 0.01:
+            d.ellipse((p[0] - size, p[1] - size, p[0] + size, p[1] + size), fill=col + (int(235 * a),))
+            if tour and k % 4 == 0: d.polygon([(p[0] - size, p[1] - size + 1), (p[0] + size, p[1] - size + 1), (p[0], p[1] - size * 2.4)], fill=(255, 90, 80, int(235 * a)))     # шляпка туриста
+            if tour and k == 0: d.line([(p[0] + size, p[1]), (p[0] + size, p[1] - 70)], fill=(240, 240, 255, 255), width=3); d.polygon([(p[0] + size, p[1] - 70), (p[0] + size + 46, p[1] - 56), (p[0] + size, p[1] - 42)], fill=(80, 200, 255, 255))   # гид с флажком
     g = lay.filter(ImageFilter.GaussianBlur(7)); im.alpha_composite(g); im.alpha_composite(lay)
 def spray(im, I, lt, t0, u=1.0, col=PINK):
     """Облако аромата из флакона: расходящиеся полупрозрачные овалы."""
@@ -133,7 +138,7 @@ def can_icon(d, c, s, col=PINK, a=1.0):
 def s0(lt, D):
     I = iso(90, 700, lt); im = bath(lt, I, wall_a=100); lay, d = layer()
     mol(im, I, lt + 4.0, n=70, a=0.9, spread=1.0); spray(im, I, lt, 0.5)
-    q = P(0, lt, 1, 0.1, 0.8); pc = I.p(*CAN)
+    q = P(0, lt, 1, 0.1, 0.8); pc = I.p(*CAN); can_icon(d, (900, 560), 90, a=min(1, lt * 2))
     B.reticle(d, (pc[0], pc[1] + 40), 120, PINK + (int(230 * min(1, lt)),), u=min(1, lt * 1.5), ticks=36, w=3)
     if q > 0: pill(d, (540, 330), "НОС ОБМАНУТ. ВОЗДУХ — НЕТ", 36, YEL, a=q)
     corners(d, 0.5)
@@ -146,11 +151,11 @@ def s1(lt, D):
 # ---------- 2. запах: молекулы-туристы
 def s2(lt, D):
     I = iso(96, 700, lt); im = bath(lt, I, wall_a=110); lay, d = layer(); chap(d, "01", "ОТКУДА ЗАПАХ", P(2, lt, 0, 0.0, 0.3))
-    mol(im, I, lt * 0.7, n=80, a=1.0, spread=1.2); a = P(2, lt, 1, 0.2, 0.9)
+    mol(im, I, lt * 0.7, n=60, a=1.0, spread=1.8, size=10, tour=True); a = P(2, lt, 1, 0.2, 0.9)
     pc = I.p(*SRC)
     if a > 0: B.leader(d, (pc[0] + 20, pc[1] - 30), (pc[0] + 120, pc[1] - 220), (900, pc[1] - 220), YEL + (230,), u=a); tx(d, (770, pc[1] - 260), "МОЛЕКУЛА ЗАПАХА", 32, YEL, a=a)
     t = P(2, lt, 2, 0.2, 0.9)
-    if t > 0: tx(d, (540, 1040), "ЭКСКУРСИЯ ПО КОМНАТЕ", 44, WHT, a=t)
+    if t > 0: tx(d, (540, 1040), "ЭКСКУРСИЯ ПО КОМНАТЕ", 52, YEL, a=t)
     corners(d, 0.5)
     return fin(im, lay, lt, k=0.6)
 # ---------- 3. вещества с серой
@@ -160,7 +165,7 @@ def s3(lt, D):
     for dx in (-110, 110): d.line([c, (c[0] + dx, c[1] + 70)], fill=(230, 235, 255, int(255 * a)), width=8); d.ellipse((c[0] + dx - 34, c[1] + 70 - 34, c[0] + dx + 34, c[1] + 70 + 34), fill=(230, 236, 255, int(255 * a)))
     d.ellipse((c[0] - 70, c[1] - 70, c[0] + 70, c[1] + 70), fill=YEL + (int(255 * a),)); tx(d, (c[0], c[1]), "S", 70, (30, 28, 10), a=a, w="Black")
     tx(d, (540, 520), "ВЕЩЕСТВА С СЕРОЙ", 52, YEL, a=a)
-    if b > 0: d.rounded_rectangle((250, 930, 830, 1030), 20, fill=(8, 14, 28, int(230 * b)), outline=GOLD + (int(230 * b),), width=3); tx(d, (540, 980), "1987 · GASTROENTEROLOGY", 36, GOLD, a=b)
+    if b > 0: d.rounded_rectangle((250, 930, 830, 1030), 20, fill=(8, 14, 28, int(230 * b)), outline=GOLD + (int(230 * b),), width=3); tx(d, (540, 965), "MOORE И ДР. · 1987", 40, GOLD, a=b); tx(d, (540, 1020), "GASTROENTEROLOGY · СЕРОСОДЕРЖАЩИЕ ГАЗЫ", 24, DIM, a=b, w="Medium")
     corners(d, 0.5)
     return fin(im, lay, lt, k=0.7)
 # ---------- 4. нос-детектор
@@ -173,32 +178,35 @@ def s4(lt, D):
     if b > 0: tx(d, (700, 560), "СОТНИ ВИДОВ", 44, GRN, a=b); tx(d, (700, 615), "РЕЦЕПТОРОВ", 36, GRN, a=b)
     if c > 0:
         d.rounded_rectangle((120, 900, 960, 1070), 20, fill=(8, 14, 28, int(235 * c)), outline=YEL + (int(240 * c),), width=3)
-        tx(d, (540, 950), "СЕРОВОДОРОД (ЗАПАХ ТУХЛЫХ ЯИЦ)", 30, DIM, a=c, w="Medium"); tx(d, (540, 1015), "5 молекул на 10 000 000 000", 46, YEL, a=c)
+        tx(d, (540, 945), "СЕРОВОДОРОД (ЗАПАХ ТУХЛЫХ ЯИЦ) · У САМЫХ ЧУТКИХ", 26, DIM, a=c, w="Medium"); tx(d, (540, 1010), "5 молекул на 10 000 000 000", 46, YEL, a=c); tx(d, (540, 1060), "ПОРОГ У ЛЮДЕЙ РАЗНЫЙ (ATSDR)", 24, DIM, a=c, w="Medium")
     corners(d, 0.5)
     return fin(im, lay, lt, k=0.7)
 # ---------- 5. РЕХУК: освежитель — парфюмер
 def s5(lt, D):
     I = iso(96, 700, lt); im = bath(lt, I, wall_a=110); lay, d = layer(); chap(d, "03", "ОСВЕЖИТЕЛЬ", P(5, lt, 0, 0.0, 0.3))
-    mol(im, I, lt * 0.7 + 3, n=80, a=1.0, spread=1.2); spray(im, I, lt, T(5, 1, 0.3), u=1.0)
+    mol(im, I, lt * 0.7 + 3, n=60, a=1.0, spread=1.6, size=10); spray(im, I, lt, T(5, 1, 0.3), u=2.2); spray(im, I, lt, T(5, 1, 0.5), u=2.0, col=LIL)
     b = P(5, lt, 1, 0.3, 0.9); c = P(5, lt, 2, 0.2, 0.9)
     if b > 0: tx(d, (300, 1010), "ПАРФЮМЕР", 56, PINK, a=b)
     if c > 0: pill(d, (700, 1010), "ЗАПАХ НА МЕСТЕ", 34, YEL, a=c); pill(d, (700, 1080), "ПОВЕРХ — БУКЕТ", 34, PINK, a=c)
-    can_icon(d, (900, 480), 70, a=b); corners(d, 0.5)
+    can_icon(d, (880, 520), 100, a=b)
+    if b > 0: d.ellipse((835, 380, 925, 420), fill=(60, 60, 110, int(255 * b)))
+    if c > 0: tx(d, (540, 1150), "ЗАПАХ: БЕЗ ИЗМЕНЕНИЙ", 30, YEL, a=c, w="Medium")
+    corners(d, 0.5)
     return fin(im, lay, lt, k=0.6)
 # ---------- 6. обзор 2017
 def s6(lt, D):
     im = grid_bg(lt); lay, d = layer(); chap(d, "03", "ОСВЕЖИТЕЛЬ", 1.0); a = P(6, lt, 0, 0.1, 0.5); b = P(6, lt, 1, 0.1, 0.6); c = P(6, lt, 2, 0.1, 0.5); e = P(6, lt, 3, 0.1, 0.8)
-    d.rounded_rectangle((120, 440, 960, 570), 22, fill=(8, 14, 28, int(235 * a)), outline=ICE + (int(240 * a),), width=3); tx(d, (540, 505), "STEINEMANN · 2017", 50, ICE, a=a)
+    d.rounded_rectangle((120, 440, 960, 570), 22, fill=(8, 14, 28, int(235 * a)), outline=ICE + (int(240 * a),), width=3); tx(d, (540, 505), "ОБЗОР 2017 · STEINEMANN", 46, ICE, a=a)
     if b > 0: tx(d, (540, 700), "АРОМАТ ≠ ОЧИСТКА", 58, PINK, a=b)
     if c > 0 or e > 0:
         n = int(100 * ease(e)); rng = np.random.default_rng(4)
         for k in range(n): px = 120 + (k % 20) * 42; py = 810 + (k // 20) * 42; d.ellipse((px - 12, py - 12, px + 12, py + 12), fill=LIL + (230,))
-        tx(d, (540, 1060), f"{n}+ ВЕЩЕСТВ В ВОЗДУХЕ" if n < 100 else "100+ ВЕЩЕСТВ В ВОЗДУХЕ", 40, LIL, a=max(c, e))
+        if n > 0: tx(d, (540, 1050), (f"{n}" if n < 100 else "100+") + " ВЕЩЕСТВ ВЫДЕЛЯЮТ ОСВЕЖИТЕЛИ", 38, LIL, a=max(c, e)); tx(d, (540, 1110), "ОБЗОР 2017 ГОДА", 26, DIM, a=max(c, e), w="Medium")
     corners(d, 0.5)
     return fin(im, lay, lt, k=0.7)
 # ---------- 7. окно и вытяжка
 def s7(lt, D):
-    I = iso(96, 700, lt); im = bath(lt, I, wall_a=100); lay, d = layer(); chap(d, "04", "ЧТО РАБОТАЕТ", P(7, lt, 0, 0.0, 0.3))
+    I = iso(96, 700, lt); im = bath(lt, I, wall_a=100, fan=1.0); lay, d = layer(); chap(d, "04", "ЧТО РАБОТАЕТ", P(7, lt, 0, 0.0, 0.3))
     w = P(7, lt, 1, 0.1, 0.6); v = P(7, lt, 3, 0.1, 0.6)
     mol(im, I, lt * 0.7 + 3, n=80, a=1.0, spread=1.2, keep=max(0.12, 1 - 0.8 * max(w, v)))
     if w > 0:
@@ -218,7 +226,10 @@ def s8(lt, D):
         ph_ = (lt * 0.5 + rng.uniform(0, 1)) % 1; y = 520 + rng.uniform(0, 380); x = 120 + ph_ * 300 if ph_ < 0.95 else 420
         if x < 415: d.ellipse((x - 9, y - 9, x + 9, y + 9), fill=YEL + (int(230 * a),))
         else: d.ellipse((430, y - 7, 446, y + 7), fill=YEL + (int(160 * a),))
-    pill(d, (540, 460), "ЕСЛИ ЕГО МНОГО", 34, GRN, a=a)
+    pill(d, (540, 470), "ЕСЛИ ЕГО МНОГО", 34, GRN, a=a)
+    for gx in range(6):
+        for gy in range(10): d.ellipse((440 + gx * 33, 560 + gy * 32, 440 + gx * 33 + 20, 560 + gy * 32 + 20), fill=(60, 64, 76, int(255 * a)))
+    tx(d, (540, 1130), "НЕ ЗАМЕНЯЕТ ПРОВЕТРИВАНИЕ (US EPA)", 28, GRN, a=b, w="Medium")
     if b > 0: d.rounded_rectangle((130, 980, 950, 1090), 20, fill=(8, 14, 28, int(230 * b)), outline=DIM + (int(230 * b),), width=2); tx(d, (540, 1035), "«ЛОВИТ МОЛЕКУЛЫ» — ПРОВЕРИТЬ ТРУДНО", 34, WHT, a=b)
     corners(d, 0.5)
     return fin(im, lay, lt, k=0.7)
