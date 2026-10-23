@@ -393,6 +393,8 @@ def frame(t, n):
     a = np.asarray(im).astype(np.int16); a += np.repeat(np.repeat(GRAIN[n % len(GRAIN)], 2, 0), 2, 1)[..., None]
     return np.clip(a, 0, 255).astype(np.uint8)
 
+def _frame_bytes(n): return frame(n / FPS, n).tobytes()
+
 if __name__ == "__main__":
     print("длительность", round(DUR, 1), "с, сцены", [round(d, 1) for d in DURS])
     if len(sys.argv) > 3:
@@ -400,7 +402,13 @@ if __name__ == "__main__":
         sys.exit()
     p = subprocess.Popen(["ffmpeg", "-nostdin", "-loglevel", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
                           "-c:v", "libx264", "-preset", "slow", "-tune", "film", "-crf", "19", "-maxrate", "6M", "-bufsize", "12M", "-profile:v", "high", "-pix_fmt", "yuv420p", f"{WORK}/video.mp4"], stdin=subprocess.PIPE)
-    for n in range(int(DUR * FPS)): p.stdin.write(frame(n / FPS, n).tobytes())
+    NW = int(os.environ.get("WORKERS", "4"))
+    if NW > 1:                                                                   # кадры считаются параллельно (по ядрам), порядок сохраняется
+        import multiprocessing as mp
+        with mp.get_context("fork").Pool(NW) as pool:
+            for buf in pool.imap(_frame_bytes, range(int(DUR * FPS)), chunksize=6): p.stdin.write(buf)
+    else:
+        for n in range(int(DUR * FPS)): p.stdin.write(frame(n / FPS, n).tobytes())
     p.stdin.close(); p.wait()
     vfx = getattr(cfg, "VOICE_FX", "highpass=f=80,equalizer=f=3500:t=q:w=1.5:g=1.5,deesser=i=0.2")   # обработка голоса (VOICE_FX — «студийная»)
     fc = (f"[1:a]{vfx},asplit[v][vk];" +
